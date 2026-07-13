@@ -1,0 +1,15 @@
+build/
+out/
+.cache/
+.vscode/
+*.o
+*.obj
+*.a
+*.lib
+*.elf
+*.axf
+*.hex
+*.map
+*.lst
+*.d
+

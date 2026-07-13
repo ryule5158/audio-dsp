@@ -1,0 +1,30 @@
+AUDIO_DSP is a mixed-license collection. There is no single license covering
+every file. The applicable license is determined by the file header and the
+boundaries below.
+
+1. The existing top-level aud_*.c and aud_*.h modules are C ports derived from
+   DaisySP and retain their MIT license notices.
+
+2. Mutable Instruments STM32 algorithm sources under
+   eurorack_algorithms/vendor/{braids,clouds,elements,frames,marbles,peaks,
+   plaits,rings,stages,streams,tides,tides2,warps,yarns,stmlib,
+   stm_audio_bootloader} are distributed
+   under the MIT License unless an individual file says otherwise. The C ABI
+   wrappers and examples for these modules are also distributed under MIT.
+
+3. Branches, Edges, Grids, their AVR compatibility support, and their C ABI
+   wrappers are distributed under GPL-3.0-or-later. Linking these components
+   into firmware makes the resulting combined work subject to the GPL terms.
+   Applications that cannot satisfy GPL distribution requirements must omit
+   these three modules and their objects.
+
+4. Mutable Instruments hardware design files were not copied into this
+   repository. The upstream hardware license therefore does not apply to the
+   files distributed here.
+
+Full standard license texts are in LICENSES/MIT.txt and
+LICENSES/GPL-3.0-or-later.txt. Copyright notices in source files must be kept.
+
+Mutable Instruments and individual module names may be trademarks of their
+respective owners. This is an independent software port, not an official
+Mutable Instruments product.

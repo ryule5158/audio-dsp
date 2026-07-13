@@ -1,0 +1,374 @@
+{
+  "schema_version": 1,
+  "source": {
+    "repository": "https://github.com/pichenettes/eurorack",
+    "commit": "08460a69a7e1f7a81c5a2abcc7189c9a6b7208d4",
+    "verified_root_blobs": 1109,
+    "root_hash_mismatches": 0,
+    "submodules": {
+      "avrlib": "276b2887e4110ca913294fcbb313163dfb28a448",
+      "avrlibx": "868d6e74eb8555f9575b5149202256156e5c03fa",
+      "avr_audio_bootloader": "0de2be5928afdf7fb3e5ada60544ed6c15ab808f",
+      "stm_audio_bootloader": "1ec7d6374e2d305cb710170eb80de9b66e795792",
+      "stmlib": "e3bd7c9cc00e4364166f9905c0509b6ffd0535ec"
+    }
+  },
+  "port": {
+    "target": "STM32H7 Cortex-M7 hard-float",
+    "public_abi": "C11 extern C",
+    "implementation": "upstream C++ DSP cores with HAL-free C wrappers",
+    "heap_allocation": false,
+    "caller_owned_contexts": true,
+    "vendored_algorithm_files": 398,
+    "project_count": 27,
+    "c_api_project_count": 17,
+    "support_c_api_count": 1,
+    "public_context_bytes": {
+      "braids": 17152,
+      "clouds": 8960,
+      "elements": 113664,
+      "frames_keyframer": 896,
+      "frames_lfo": 52,
+      "fsk": 512,
+      "marbles": 8448,
+      "peaks": 1408,
+      "plaits": 9024,
+      "rings": 110592,
+      "stages": 3096,
+      "streams": 608,
+      "tides": 704,
+      "tides2": 248,
+      "warps": 72660,
+      "yarns": 192
+    },
+    "notes": [
+      "Large contexts and delay/reverb buffers must be placed in static memory.",
+      "Fixed native sample rates require host-side sample-rate conversion when the codec rate differs.",
+      "Tides 1 and Tides 2 resource symbols are disambiguated at compile time so both can coexist.",
+      "No wrapper includes STM32 HAL headers or writes MCU Flash."
+    ]
+  },
+  "build_verification": {
+    "compilers": [
+      "arm-none-eabi-gcc/g++ 13.3.1",
+      "Keil ArmClang 6.24 (MDK Plus 5.43)"
+    ],
+    "flags": "cortex-m7 thumb fpv5-d16 hard-float O2 fast-math",
+    "gnu_build_steps": 156,
+    "armclang_build_steps": 154,
+    "errors": 0,
+    "warnings": 0,
+    "all_module_link_smoke": true,
+    "strong_duplicate_symbols": 0,
+    "linked_text_bytes": 412424,
+    "hardware_audio_tested": false
+  },
+  "license_groups": {
+    "MIT": "STM32 Mutable Instruments algorithms, C wrappers, examples, and existing DaisySP-derived C modules",
+    "GPL-3.0-or-later": "Branches, Edges, Grids, their wrappers, and AVR compatibility support"
+  },
+  "support_modules": [
+    {
+      "project": "stm_audio_bootloader_fsk",
+      "status": "h7_c_api",
+      "license": "MIT",
+      "header": "include/aud_euro_fsk.h",
+      "algorithms": [
+        "run-length FSK demodulation from comparator samples",
+        "preamble synchronization",
+        "256-byte packet assembly",
+        "CRC32 validation"
+      ]
+    }
+  ],
+  "modules": [
+    {
+      "project": "blades",
+      "status": "no_firmware",
+      "reason": "Analog dual multimode filter; upstream contains hardware design files only."
+    },
+    {
+      "project": "blinds",
+      "status": "no_firmware",
+      "reason": "Analog VC polarizer; upstream contains hardware design files only."
+    },
+    {
+      "project": "braids",
+      "status": "h7_c_api",
+      "license": "MIT",
+      "header": "include/aud_euro_braids.h",
+      "native_sample_rate_hz": 96000,
+      "algorithms": [
+        "48-mode macro oscillator",
+        "band-limited analog oscillators",
+        "wavetable and wave-map synthesis",
+        "FM and feedback FM",
+        "vocal formant and VOSIM",
+        "physical-modeling voices",
+        "noise and particle synthesis",
+        "pitch quantizer and excitation envelope"
+      ]
+    },
+    {
+      "project": "branches",
+      "status": "h7_c_api",
+      "license": "GPL-3.0-or-later",
+      "header": "include/aud_euro_branches.h",
+      "implementation_note": "Portable C translation with intuitive probability_a semantics: 0 selects B, 1 selects A.",
+      "algorithms": ["dual Bernoulli gate router", "toggle and latch routing modes"]
+    },
+    {
+      "project": "clouds",
+      "status": "h7_c_api",
+      "license": "MIT",
+      "header": "include/aud_euro_clouds.h",
+      "native_sample_rate_hz": 32000,
+      "algorithms": [
+        "granular synthesis",
+        "WSOLA time stretching",
+        "looping delay",
+        "phase vocoder and STFT",
+        "pitch shifting",
+        "diffusion and reverb",
+        "mu-law audio storage",
+        "sample-rate conversion and correlation"
+      ]
+    },
+    {
+      "project": "ears",
+      "status": "no_firmware",
+      "reason": "Contact microphone and envelope follower hardware only."
+    },
+    {
+      "project": "edges",
+      "status": "h7_c_api",
+      "license": "GPL-3.0-or-later",
+      "header": "include/aud_euro_edges.h",
+      "implementation_note": "Portable waveform/noise renderer and timer calculator; not cycle-exact AVR timer emulation.",
+      "algorithms": [
+        "triangle and NES triangle oscillators",
+        "pitched and NES noise",
+        "sample-rate reduction",
+        "generic timer period and pulse-width calculation",
+        "MIDI note stack and voice allocation source"
+      ]
+    },
+    {
+      "project": "elements",
+      "status": "h7_c_api",
+      "license": "MIT",
+      "header": "include/aud_euro_elements.h",
+      "native_sample_rate_hz": 32000,
+      "algorithms": [
+        "modal resonator",
+        "waveguide string and string ensemble",
+        "bow, blow and strike exciters",
+        "tube model",
+        "multistage envelope",
+        "diffusion and reverb"
+      ]
+    },
+    {
+      "project": "frames",
+      "status": "h7_c_api",
+      "license": "MIT",
+      "header": "include/aud_euro_frames.h",
+      "algorithms": [
+        "64-keyframe four-channel interpolator",
+        "step, linear, quartic, sine and bounce easing",
+        "four-channel phase/frequency-spread LFO"
+      ]
+    },
+    {
+      "project": "grids",
+      "status": "h7_c_api",
+      "license": "GPL-3.0-or-later",
+      "header": "include/aud_euro_grids.h",
+      "implementation_note": "The upstream pattern generator is a singleton; use one global Grids instance per firmware image.",
+      "algorithms": [
+        "topographic drum pattern interpolation",
+        "three-channel Euclidean rhythm generator",
+        "density, randomness, accents, swing and clock modes"
+      ]
+    },
+    {
+      "project": "kinks",
+      "status": "no_firmware",
+      "reason": "Analog rectifier, logic, sample-and-hold and noise hardware only."
+    },
+    {
+      "project": "links",
+      "status": "no_firmware",
+      "reason": "Analog buffer and mixer hardware only."
+    },
+    {
+      "project": "marbles",
+      "status": "h7_c_api",
+      "license": "MIT",
+      "header": "include/aud_euro_marbles.h",
+      "algorithms": [
+        "correlated random gate generator",
+        "Bernoulli, cluster, divider, drum and Markov models",
+        "deja-vu repeatable random sequences",
+        "quantized random voltage generator",
+        "clock recovery, ramp division and probability distributions"
+      ]
+    },
+    {
+      "project": "peaks",
+      "status": "h7_c_api",
+      "license": "MIT",
+      "header": "include/aud_euro_peaks.h",
+      "native_sample_rate_hz": 48000,
+      "algorithms": [
+        "multistage envelope",
+        "free and tap-tempo LFO",
+        "bass, snare, hi-hat and FM drums",
+        "pulse shaper and randomizer",
+        "bouncing ball",
+        "mini sequencer and number station"
+      ]
+    },
+    {
+      "project": "plaits",
+      "status": "h7_c_api",
+      "license": "MIT",
+      "header": "include/aud_euro_plaits.h",
+      "native_sample_rate_hz": 48000,
+      "context_bytes": 9024,
+      "external_memory_bytes": 16384,
+      "user_data_page_bytes": 4096,
+      "implementation_note": "The wrapper always renders native 24-frame blocks into an internal FIFO, so arbitrary host DMA lengths preserve envelope timing. User data is supplied as a read-only host pointer; the library never erases Flash.",
+      "algorithms": [
+        "24 macro-oscillator engines",
+        "virtual analog, waveshaping and phase distortion",
+        "two- and six-operator FM",
+        "grain, swarm, particle and noise synthesis",
+        "chords, string machine and chiptune",
+        "modal and string physical modeling",
+        "analog and synthetic drums",
+        "LPC, SAM and naive speech synthesis",
+        "wave terrain and user wavetable source"
+      ]
+    },
+    {
+      "project": "rings",
+      "status": "h7_c_api",
+      "license": "MIT",
+      "header": "include/aud_euro_rings.h",
+      "native_sample_rate_hz": 48000,
+      "algorithms": [
+        "modal resonator",
+        "sympathetic strings",
+        "waveguide string",
+        "FM voice",
+        "polyphonic strummer and plucker",
+        "chorus, ensemble and reverb"
+      ]
+    },
+    {
+      "project": "ripples",
+      "status": "no_firmware",
+      "reason": "Analog multimode filter hardware only."
+    },
+    {
+      "project": "shades",
+      "status": "no_firmware",
+      "reason": "Analog attenuverter hardware only."
+    },
+    {
+      "project": "shelves",
+      "status": "no_firmware",
+      "reason": "Analog EQ hardware only."
+    },
+    {
+      "project": "stages",
+      "status": "h7_c_api",
+      "license": "MIT",
+      "header": "include/aud_euro_stages.h",
+      "native_sample_rate_hz": 31250,
+      "algorithms": [
+        "36-stage ramp, step, hold and alternating segment generator",
+        "AD/ADSR envelopes and sequencer",
+        "tap LFO and PLL oscillator",
+        "sample-and-hold, delay and portamento",
+        "audio-rate variable-shape oscillator"
+      ]
+    },
+    {
+      "project": "streams",
+      "status": "h7_c_api",
+      "license": "MIT",
+      "header": "include/aud_euro_streams.h",
+      "algorithms": [
+        "envelope and vactrol models",
+        "envelope follower",
+        "compressor",
+        "filter controller",
+        "Lorenz chaotic modulation generator"
+      ]
+    },
+    {
+      "project": "tides",
+      "status": "h7_c_api",
+      "license": "MIT",
+      "header": "include/aud_euro_tides.h",
+      "native_sample_rate_hz": 48000,
+      "algorithms": [
+        "band-limited slope oscillator",
+        "AD, AR and looping envelope modes",
+        "wave shaping, smoothing and folding",
+        "clock synchronization and ratio prediction"
+      ]
+    },
+    {
+      "project": "tides2",
+      "status": "h7_c_api",
+      "license": "MIT",
+      "header": "include/aud_euro_tides2.h",
+      "algorithms": [
+        "four-output poly slope generator",
+        "amplitude, phase, frequency and gate output relationships",
+        "audio and control ranges",
+        "external-ramp locking, folding and filtering"
+      ]
+    },
+    {
+      "project": "veils",
+      "status": "no_firmware",
+      "reason": "Analog VCA hardware only."
+    },
+    {
+      "project": "volts",
+      "status": "no_firmware",
+      "reason": "Power utility hardware only."
+    },
+    {
+      "project": "warps",
+      "status": "h7_c_api",
+      "license": "MIT",
+      "header": "include/aud_euro_warps.h",
+      "implementation_note": "Process length must be a multiple of 3 because of the native oversampling filters.",
+      "algorithms": [
+        "crossfade and cross-folding",
+        "analog and digital ring modulation",
+        "XOR and comparator modulation",
+        "vocoder and filter bank",
+        "quadrature transform and frequency shifter",
+        "oversampling and saturation"
+      ]
+    },
+    {
+      "project": "yarns",
+      "status": "h7_c_api",
+      "license": "MIT",
+      "header": "include/aud_euro_yarns.h",
+      "implementation_note": "The C API exposes adaptive tuning and a sample-rate-independent 24-PPQN swing clock. Note stack, voice allocation, arpeggiator, sequencer, and CV voice sources are preserved under vendor/yarns for advanced C++ integration.",
+      "algorithms": [
+        "history-aware adaptive just intonation",
+        "sample-rate-independent 24-PPQN clock with swing",
+        "MIDI note stack, voice allocation, arpeggiator and sequencer source"
+      ]
+    }
+  ]
+}
