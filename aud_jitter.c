@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: LGPL-2.1-only */
 #include "aud_jitter.h"
 #include <stddef.h>
 #include <math.h>

@@ -15,7 +15,7 @@
 | 项目 | 许可证 | 候选能力 | 结论 |
 |---|---|---|---|
 | [CMSIS-DSP](https://github.com/ARM-software/CMSIS-DSP/tree/ec1bb75277d3e23e2fa7b8819dc734a7926b0bfb) | Apache-2.0 | Cortex-M/A FFT、FIR、IIR、矩阵和统计优化 | **采用为可选后端**；MCU 通过 Keil CMSIS-Pack/CubeMX 使用，不复制整库 |
-| [DaisySP](https://github.com/electro-smith/DaisySP/tree/599511b740f8f3a9b8db72a0642aa45b8a23c3a3) | MIT（含 Soundpipe/Plaits 通知） | 嵌入式合成、效果、物理建模 | **保留现有 C 端口**；做跨平台适配与回归，不重复导入 C++ 全库 |
+| [DaisySP](https://github.com/electro-smith/DaisySP/tree/599511b740f8f3a9b8db72a0642aa45b8a23c3a3) | 主库 MIT；历史 DaisySP-LGPL 子集为 LGPL-2.1-only | 嵌入式合成、效果、物理建模 | **保留现有 C 端口但修正边界**；17 个 LGPL 模块默认排除，其余进入默认跨平台库 |
 | [Mutable Instruments eurorack](https://github.com/pichenettes/eurorack/tree/08460a69a7e1f7a81c5a2abcc7189c9a6b7208d4) | 混合 MIT/GPL | 宏振荡器、颗粒、物理建模、随机/音序 | **保留现有固定提交端口**；GPL 模块继续显式隔离 |
 | [STK](https://github.com/thestk/stk/tree/6aacd357d76250bb7da2b1ddf675651828784bbc) | MIT 风格 | 乐器物理建模、效果、控制 | **算法参考**；本地已有 pluck/modal/string，暂不引入大型 C++ 运行时 |
 | [Maximilian](https://github.com/micknoise/Maximilian/tree/f937afb71aee841607f87a7f8bbd9783581fbd30) | MIT | C++ 合成、FFT、滤波和效果 | **算法/测试参考**；不作为嵌入式默认依赖 |

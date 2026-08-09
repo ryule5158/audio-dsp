@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: LGPL-2.1-only */
 /**
  * @file    aud_line.h
  * @brief   Linear ramp generator (start→end over duration).

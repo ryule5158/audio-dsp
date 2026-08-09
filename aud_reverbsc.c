@@ -1,6 +1,6 @@
+/* SPDX-License-Identifier: LGPL-2.1-only */
 #include "aud_reverbsc.h"
 #include <math.h>
-#include <stdlib.h>
 #include <stddef.h>
 
 #define REVSC_OK 0
@@ -21,7 +21,6 @@ static const float kReverbParams[8][4] = {
 static const float kOutputGain=0.35f,kJpScale=0.25f;
 
 static int DelayLineMaxSamples(float sr,float ipm,int n){float md=kReverbParams[n][0]+(kReverbParams[n][1]*ipm*1.125f);return(int)(md*sr+16.5f);}
-static int DelayLineBytesAlloc(float sr,float ipm,int n){return DelayLineMaxSamples(sr,ipm,n)*(int)sizeof(float);}
 
 static void NextRandomLineseg(Aud_ReverbSc *self,Aud_ReverbScDl *lp,int n){
  if(lp->seed_val<0)lp->seed_val+=0x10000;lp->seed_val=(lp->seed_val*15625+1)&0xFFFF;
@@ -45,10 +44,11 @@ static int InitDelayLine(Aud_ReverbSc *self,Aud_ReverbScDl *lp,int n){
 int Aud_ReverbSc_Init(Aud_ReverbSc *self,float sr){
  if(self==NULL)return REVSC_NOT_OK;self->i_sample_rate=sr;self->sample_rate=sr;self->feedback=0.97f;
  self->lpfreq=10000.0f;self->i_pitch_mod=1.0f;self->i_skip_init=0.0f;self->damp_fact=1.0f;
- self->prv_lpfreq=0.0f;self->init_done=1;int i,n_bytes=0;
- for(i=0;i<8;i++){if(n_bytes>AUD_REVERBSC_MAX_SIZE)return REVSC_NOT_OK;
-  self->delay_lines[i].buf=self->aux+n_bytes;InitDelayLine(self,&self->delay_lines[i],i);
-  n_bytes+=DelayLineBytesAlloc(sr,1,i);}return REVSC_OK;}
+ self->prv_lpfreq=0.0f;self->init_done=1;int i,n_samples=0;
+ for(i=0;i<8;i++){int required=DelayLineMaxSamples(sr,1,i);
+  if(required<0||n_samples>AUD_REVERBSC_MAX_SIZE-required)return REVSC_NOT_OK;
+  self->delay_lines[i].buf=self->aux+n_samples;InitDelayLine(self,&self->delay_lines[i],i);
+  n_samples+=required;}return REVSC_OK;}
 
 int Aud_ReverbSc_Process(Aud_ReverbSc *self,float in1,float in2,float*out1,float*out2){
  if(self==NULL||out1==NULL||out2==NULL)return REVSC_NOT_OK;

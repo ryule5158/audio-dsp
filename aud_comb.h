@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: LGPL-2.1-only */
 /**
  * @file    aud_comb.h
  * @brief   Comb filter (feedforward / feedback).

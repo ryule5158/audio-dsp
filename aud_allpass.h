@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: LGPL-2.1-only */
 /**
  * @file    aud_allpass.h
  * @brief   Allpass filter — passes all frequencies, shifts phase.

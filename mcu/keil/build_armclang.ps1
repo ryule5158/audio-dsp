@@ -1,7 +1,8 @@
 param(
     [string]$ArmClang = "C:\Users\LENOVO\AppData\Local\Keil_v5\ARM\ARMCLANG\bin\armclang.exe",
     [string]$ArmAr = "C:\Users\LENOVO\AppData\Local\Keil_v5\ARM\ARMCLANG\bin\armar.exe",
-    [string]$CubeH7Root = "C:\Users\LENOVO\STM32Cube\Repository\STM32Cube_FW_H7_V1.13.0"
+    [string]$CubeH7Root = "C:\Users\LENOVO\STM32Cube\Repository\STM32Cube_FW_H7_V1.13.0",
+    [switch]$IncludeLgpl
 )
 
 $ErrorActionPreference = "Stop"
@@ -40,9 +41,19 @@ $Sources = @(
     (Join-Path $RepoRoot "mcu\src\aud_mcu_audio.c"),
     (Join-Path $RepoRoot "mcu\src\aud_mcu_fx_chain.c")
 )
-$Sources += Get-ChildItem -LiteralPath $RepoRoot -Filter "aud_*.c" -File |
-    Sort-Object Name |
-    Select-Object -ExpandProperty FullName
+$LgplBasenames = @(
+    "aud_allpass.c", "aud_balance.c", "aud_bitcrush.c", "aud_blosc.c",
+    "aud_comb.c", "aud_compressor.c", "aud_fold.c", "aud_jitter.c",
+    "aud_line.c", "aud_mode.c", "aud_moogladder.c", "aud_nlfilt.c",
+    "aud_pluck.c", "aud_polypluck.c", "aud_port.c", "aud_reverbsc.c",
+    "aud_tone.c"
+)
+$RootSources = Get-ChildItem -LiteralPath $RepoRoot -Filter "aud_*.c" -File |
+    Sort-Object Name
+if (-not $IncludeLgpl) {
+    $RootSources = $RootSources | Where-Object { $_.Name -notin $LgplBasenames }
+}
+$Sources += $RootSources | Select-Object -ExpandProperty FullName
 
 $Objects = @()
 foreach ($Source in $Sources) {
@@ -54,7 +65,12 @@ foreach ($Source in $Sources) {
     $Objects += $Object
 }
 
-$Library = Join-Path $OutputDir "audio_dsp_h743.lib"
+$LibraryName = if ($IncludeLgpl) {
+    "audio_dsp_h743_lgpl.lib"
+} else {
+    "audio_dsp_h743.lib"
+}
+$Library = Join-Path $OutputDir $LibraryName
 & $ArmAr --create $Library $Objects
 if ($LASTEXITCODE -ne 0) {
     throw "ArmAr failed"
@@ -62,6 +78,7 @@ if ($LASTEXITCODE -ne 0) {
 
 & $ArmAr -t $Library
 Write-Output "MCU_ARMCLANG_BUILD_OK=$Library"
+Write-Output "MCU_LGPL_MODULES_INCLUDED=$([int]$IncludeLgpl.IsPresent)"
 
 $HalConfig = Join-Path $CubeH7Root "Projects\STM32H743I-EVAL\Examples\SAI\SAI_AudioPlayback\Inc"
 $HalIncludes = @(

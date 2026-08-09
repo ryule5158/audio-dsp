@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: LGPL-2.1-only */
 #ifndef AUD_MODE_H
 #define AUD_MODE_H
 #include <stdint.h>

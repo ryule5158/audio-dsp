@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: LGPL-2.1-only */
 #ifndef AUD_COMPRESSOR_H
 #define AUD_COMPRESSOR_H
 #include <stdint.h>

@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: LGPL-2.1-only */
 #include "aud_fold.h"
 #include <stddef.h>
 void Aud_Fold_Init(Aud_Fold *self){if(self==NULL)return;self->incr=1000.0f;self->sample_index=0;self->index=0.0f;self->value=0.0f;}

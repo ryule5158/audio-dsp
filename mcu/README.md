@@ -14,3 +14,10 @@
 - `tests/`：PCM 边界、削顶和 block 计数测试。
 
 默认参考链为：输入增益/可混合振荡器 -> DC blocker -> SVF -> overdrive -> feedback delay -> soft clip。参数只在 block 边界通过 `AudMcuFxChain_SetParams()` 更新；调用者必须把 UI/CV/MIDI 值先复制成完整快照。
+
+默认脚本生成不含 DaisySP-LGPL 对象的 `audio_dsp_h743.lib`。只有明确接受 LGPL-2.1-only 静态链接和发布义务时，才使用 `-IncludeLgpl` 生成独立的 `audio_dsp_h743_lgpl.lib`：
+
+```powershell
+& .\mcu\keil\build_armclang.ps1
+& .\mcu\keil\build_armclang.ps1 -IncludeLgpl
+```

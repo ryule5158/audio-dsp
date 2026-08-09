@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: LGPL-2.1-only */
 /**
  * @file    aud_moogladder.h
  * @brief   Moog ladder filter — classic 4-pole lowpass with resonance.

@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: LGPL-2.1-only */
 #ifndef AUD_REVERBSC_H
 #define AUD_REVERBSC_H
 #include <stdint.h>

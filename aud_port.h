@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: LGPL-2.1-only */
 /**
  * @file    aud_port.h
  * @brief   Portamento / slew limiter — smooths abrupt value changes.

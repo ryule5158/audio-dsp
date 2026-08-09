@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: LGPL-2.1-only */
 #include "aud_polypluck.h"
 #include <stddef.h>
 #include <string.h>

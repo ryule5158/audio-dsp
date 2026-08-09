@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: LGPL-2.1-only */
 /**
  * @file    aud_tone.h
  * @brief   First-order tone filter (simple bass/treble control).

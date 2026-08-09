@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: LGPL-2.1-only */
 /**
  * @file    aud_jitter.h
  * @brief   Randomly segmented line generator (jitter modulator).

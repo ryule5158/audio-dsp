@@ -14,6 +14,8 @@
 - [`docs/PLATFORM_ARCHITECTURE.md`](docs/PLATFORM_ARCHITECTURE.md)
 - [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md)
 
+默认 MCU/MPU 构建使用 [`aud_daisysp_permissive.h`](aud_daisysp_permissive.h) 对应的 permissive 集合，并排除 17 个历史 DaisySP-LGPL 模块。兼容总头文件 `aud_daisysp.h` 是混合许可证入口；启用 LGPL 静态对象前先阅读根目录 `LICENSE`。
+
 ## 交付边界
 
 软件构建、仿真和静态检查只能证明源码与工具链相容。接上真实 ADC/DAC、音频 CODEC、Eurorack 电平接口后，还必须测量采样时钟、无信号噪声、削顶、端到端延迟、CPU/FPGA 裕量和长时间稳定性，才能称为硬件验收通过。

@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: LGPL-2.1-only */
 #include "aud_blosc.h"
 #include <math.h>
 #include <stddef.h>

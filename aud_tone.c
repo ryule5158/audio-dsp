@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: LGPL-2.1-only */
 #include <stddef.h>
 #include "aud_tone.h"
 #include <math.h>

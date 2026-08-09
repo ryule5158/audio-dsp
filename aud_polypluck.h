@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: LGPL-2.1-only */
 /**
  * @file    aud_polypluck.h
  * @brief   Polyphonic pluck — wraps multiple Pluck instances for polyphony.
