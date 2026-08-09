@@ -18,7 +18,8 @@ static int drip_rand(int max){return rand()%(max+1);}
 static float drip_noise(void){return(1.0f*rand()-1073741823.5f)*(1.0f/1073741823.0f);}
 
 void Aud_Drip_Init(Aud_Drip *self,float sr,float dettack){
- if(self==NULL)return;self->sample_rate=sr;self->dettack=dettack;
+ if(self==NULL)return;
+ self->sample_rate=sr;self->dettack=dettack;
  self->num_tubes=10.0f;self->damp=0.2f;self->shake_max=0.0f;self->freq=450.0f;self->freq1=600.0f;self->freq2=720.0f;self->amp=0.3f;
  self->snd_level=0.0f;float tp=2.0f*AUD_PI/sr;
  self->kloop=sr*dettack;self->outputs00=self->outputs01=self->outputs10=self->outputs11=self->outputs20=self->outputs21=0.0f;
@@ -37,7 +38,8 @@ void Aud_Drip_Init(Aud_Drip *self,float sr,float dettack){
  self->shake_max_save=0.0f;self->num_objects=10.0f;self->finalZ0=self->finalZ1=self->finalZ2=0.0f;}
 
 float Aud_Drip_Process(Aud_Drip *self,bool trig){
- if(self==NULL)return 0.0f;float tp=2.0f*AUD_PI/self->sample_rate;
+ if(self==NULL)return 0.0f;
+ float tp=2.0f*AUD_PI/self->sample_rate;
  if(trig)Aud_Drip_Init(self,self->sample_rate,self->dettack);
  if(self->num_tubes!=0.0f&&self->num_tubes!=self->num_objects){self->num_objects=self->num_tubes;if(self->num_objects<1.0f)self->num_objects=1.0f;}
  if(self->freq!=0.0f&&self->freq!=self->res_freq0){self->res_freq0=self->freq;self->coeffs00=-WUTR_RESON*2.0f*cosf(self->res_freq0*tp);}
@@ -57,7 +59,7 @@ float Aud_Drip_Process(Aud_Drip *self,bool trig){
  self->gains2*=WUTR_RESON;if(self->gains2>0.001f){self->center_freqs2*=WUTR_FREQ_SWEEP;self->coeffs20=-WUTR_RESON*2.0f*cosf(self->center_freqs2*tp);}
  sl*=sc;float i0=sl*drip_noise(),i1=i0*self->gains1,i2=i0*self->gains2;i0*=self->gains0;
  i0-=self->outputs00*self->coeffs00;i0-=self->outputs01*self->coeffs01;self->outputs01=self->outputs00;self->outputs00=i0;float data=self->gains0*self->outputs00;
- i1-=self->outputs10*self->coeffs10;i1-=self->outputs11*self->coeffs11;self->outputs11=self->outputs10;self->outputs10=self->inputs1;data+=self->gains1*self->outputs10;
- i2-=self->outputs20*self->coeffs20;i2-=self->outputs21*self->coeffs21;self->outputs21=self->outputs20;self->outputs20=self->inputs2;data+=self->gains2*self->outputs20;
+ i1-=self->outputs10*self->coeffs10;i1-=self->outputs11*self->coeffs11;self->outputs11=self->outputs10;self->outputs10=i1;data+=self->gains1*self->outputs10;
+ i2-=self->outputs20*self->coeffs20;i2-=self->outputs21*self->coeffs21;self->outputs21=self->outputs20;self->outputs20=i2;data+=self->gains2*self->outputs20;
  self->finalZ2=self->finalZ1;self->finalZ1=self->finalZ0;self->finalZ0=data*4.0f;
  float lo=self->finalZ2-self->finalZ0;lo*=0.005f;self->shake_energy=se;self->snd_level=sl;return lo;}

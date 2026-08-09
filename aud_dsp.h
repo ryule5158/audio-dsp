@@ -21,7 +21,11 @@
 /* ====================================================================
  *  Fast floating-point min/max (ARM FPU vmaxnm / vminnm)
  * ==================================================================== */
-#ifdef __arm__
+/* VMAXNM/VMINNM are available on the H743 FPv5-D16 FPU, but not on every
+ * target that defines __arm__ (notably the i.MX6ULL Cortex-A7/VFPv4).
+ * Guard the inline assembly by the FPv5 feature macro so the portable
+ * implementation is selected for ARMv7-A and other ARM FPUs. */
+#if defined(__arm__) && defined(__ARM_FPV5__)
 static inline float aud_fmax(float a, float b) {
     float r;
     __asm__ volatile("vmaxnm.f32 %[d], %[n], %[m]" : [d] "=t"(r) : [n] "t"(a), [m] "t"(b) :);

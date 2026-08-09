@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include <stddef.h>
 static float hh_SemitonesToRatio(float in){return powf(2.0f,in*(1.0f/12.0f));}
-static float hh_SwingVCA(float s,float gain){s*=(s>0.0f)?10.0f:0.1f;s=s/(1.0f+fabsf(s));return(s+1.0f)*gain;}
 static float hh_LinearVCA(float s,float gain){return s*gain;}
 void Aud_SquareNoise_Init(Aud_SquareNoise *self,float sr){(void)sr;if(self==NULL)return;for(int i=0;i<6;i++)self->phase[i]=0;}
 float Aud_SquareNoise_Process(Aud_SquareNoise *self,float f0){if(self==NULL)return 0.0f;
