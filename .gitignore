@@ -1,6 +1,7 @@
 build/
 out/
 .cache/
+.Xil/
 .vscode/
 *.o
 *.obj
@@ -12,4 +13,3 @@ out/
 *.map
 *.lst
 *.d
-
