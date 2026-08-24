@@ -1,0 +1,16 @@
+; STM32H743IIT6: 2 MiB flash, 512 KiB AXI SRAM.
+; The first 32 KiB of D2 SRAM is reserved for non-cacheable SAI DMA buffers.
+LR_IROM1 0x08000000 0x00200000 {
+  ER_IROM1 0x08000000 0x00200000 {
+    *.o (RESET, +First)
+    *(InRoot$$Sections)
+    .ANY (+RO)
+    .ANY (+XO)
+  }
+  RW_AUDIO_DMA 0x30000000 0x00008000 {
+    *.o (.audio_dma)
+  }
+  RW_IRAM1 0x24000000 0x00080000 {
+    .ANY (+RW +ZI)
+  }
+}
