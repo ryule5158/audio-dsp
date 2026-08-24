@@ -18,9 +18,19 @@ int main(void)
     float delay_left[128];
     float delay_right[128];
     float block[64] = {0};
+    float default_block[8] = {0};
     AudMpuFxChain fx;
     AudMpuFxParams params;
     uint32_t i;
+
+    CHECK(AudMpuFxChain_Init(&fx, 48000.0f, delay_left, delay_right, 128u) == 0);
+    CHECK(fx.params.drive == 0.0f);
+    default_block[0] = 0.25f;
+    default_block[1] = -0.25f;
+    AudMpuFxChain_Process(&fx, default_block, 4u);
+    CHECK(default_block[0] > 0.1f);
+    CHECK(default_block[1] < -0.1f);
+    CHECK(fabsf(default_block[0] + default_block[1]) < 1.0e-6f);
 
     CHECK(AudMpuFxChain_Init(&fx, 48000.0f, delay_left, delay_right, 128u) == 0);
     AudMpuFxParams_Default(&params);

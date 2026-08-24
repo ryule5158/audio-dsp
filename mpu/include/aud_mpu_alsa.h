@@ -1,15 +1,10 @@
-/**
- * @file aud_mpu_alsa.h
- * @brief Blocking ALSA full-duplex runtime for i.MX6ULL/WM8960.
- */
+/** @file aud_mpu_alsa.h @brief Synchronized ALSA full-duplex runtime. */
 #ifndef AUD_MPU_ALSA_H
 #define AUD_MPU_ALSA_H
 
 #include <signal.h>
 #include <stdint.h>
-
 #include <alsa/asoundlib.h>
-
 #include "aud_mpu_pcm.h"
 
 #ifdef __cplusplus
@@ -23,12 +18,14 @@ typedef struct {
     uint32_t period_frames;
     uint32_t periods;
     AudMpuPcmFormat format;
+    int require_duplex_link;
 } AudMpuAlsaConfig;
 
 typedef struct {
     uint64_t frames;
     uint32_t capture_xruns;
     uint32_t playback_xruns;
+    uint32_t pair_restarts;
     uint32_t short_reads;
     uint32_t short_writes;
 } AudMpuAlsaStats;
@@ -42,20 +39,20 @@ typedef struct {
     void *capture_buffer;
     void *playback_buffer;
     uint32_t buffer_bytes;
+    uint32_t actual_rate;
+    uint32_t actual_period_frames;
+    uint32_t actual_periods;
+    uint32_t actual_buffer_frames;
+    int streams_linked;
 } AudMpuAlsa;
 
-int AudMpuAlsa_Open(AudMpuAlsa *alsa,
-                    const AudMpuAlsaConfig *config,
-                    AudMpuPcm *pcm,
-                    void *capture_buffer,
-                    void *playback_buffer,
-                    uint32_t buffer_bytes);
-
+int AudMpuAlsa_Open(AudMpuAlsa *alsa, const AudMpuAlsaConfig *config,
+                    AudMpuPcm *pcm, void *capture_buffer,
+                    void *playback_buffer, uint32_t buffer_bytes);
 int AudMpuAlsa_Run(AudMpuAlsa *alsa, volatile sig_atomic_t *stop_requested);
 void AudMpuAlsa_Close(AudMpuAlsa *alsa);
 
 #ifdef __cplusplus
 }
 #endif
-
 #endif

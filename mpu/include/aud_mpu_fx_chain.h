@@ -21,6 +21,7 @@ typedef struct {
     float filter_cutoff_hz;
     float filter_resonance;
     float filter_mix;
+    /** 0 is a true bypass; 0..1 also crossfades into the driven signal. */
     float drive;
     float delay_ms;
     float delay_feedback;

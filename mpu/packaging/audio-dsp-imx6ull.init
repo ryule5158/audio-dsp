@@ -1,0 +1,59 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          audio-dsp-imx6ull
+# Required-Start:    $local_fs
+# Required-Stop:     $local_fs
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: 100ASK i.MX6ULL full-duplex audio DSP
+### END INIT INFO
+
+name=audio-dsp-imx6ull
+binary=/usr/bin/audio_dsp_imx6ull
+check=/usr/libexec/audio-dsp-imx6ull/board-check
+config=/etc/audio-dsp-imx6ull/audio-dsp.conf
+pidfile=/var/run/$name.pid
+
+is_running() {
+    [ -r "$pidfile" ] || return 1
+    pid=$(cat "$pidfile" 2>/dev/null) || return 1
+    case "$pid" in *[!0-9]*|'') return 1 ;; esac
+    kill -0 "$pid" 2>/dev/null
+}
+
+do_start() {
+    is_running && return 0
+    rm -f -- "$pidfile"
+    [ -x "$binary" ] && [ -x "$check" ] && [ -r "$config" ] || return 1
+    "$check" --config "$config" --probe --quiet || return 1
+    start-stop-daemon -S -b -m -p "$pidfile" -x "$binary" -- \
+        --config "$config" || return 1
+    count=0
+    while [ "$count" -lt 50 ]; do
+        is_running && return 0
+        count=$((count + 1))
+        sleep 1
+    done
+    return 1
+}
+
+do_stop() {
+    if is_running; then
+        start-stop-daemon -K -p "$pidfile" -x "$binary" -s TERM || true
+        count=0
+        while is_running && [ "$count" -lt 5 ]; do
+            count=$((count + 1))
+            sleep 1
+        done
+        is_running && start-stop-daemon -K -p "$pidfile" -s KILL || true
+    fi
+    rm -f -- "$pidfile"
+}
+
+case "${1:-}" in
+    start) do_start ;;
+    stop) do_stop ;;
+    restart) do_stop; do_start ;;
+    status) is_running ;;
+    *) echo "usage: $0 {start|stop|restart|status}" >&2; exit 2 ;;
+esac

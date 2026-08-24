@@ -1,0 +1,8 @@
+--- a/arch/arm/boot/dts/100ask_imx6ull-14x14.dts
++++ b/arch/arm/boot/dts/100ask_imx6ull-14x14.dts
+@@ -137,4 +137,3 @@
+                 "Ext Spk", "SPK_RN",
+-                "LINPUT2", "Mic Jack",
+-                "LINPUT3", "Mic Jack",
++                "LINPUT1", "Mic Jack",
+                 "RINPUT1", "Main MIC",

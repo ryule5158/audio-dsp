@@ -1,0 +1,25 @@
+[Unit]
+Description=Audio DSP full-duplex engine for 100ASK i.MX6ULL/WM8960
+After=local-fs.target sound.target
+Wants=sound.target
+ConditionPathExists=/etc/audio-dsp-imx6ull/audio-dsp.conf
+
+[Service]
+Type=simple
+ExecStartPre=/usr/libexec/audio-dsp-imx6ull/board-check --config /etc/audio-dsp-imx6ull/audio-dsp.conf --probe
+ExecStart=/usr/bin/audio_dsp_imx6ull --config /etc/audio-dsp-imx6ull/audio-dsp.conf
+Restart=on-failure
+RestartSec=2
+TimeoutStopSec=5
+KillSignal=SIGTERM
+LimitRTPRIO=70
+LimitMEMLOCK=infinity
+AmbientCapabilities=CAP_SYS_NICE CAP_IPC_LOCK
+CapabilityBoundingSet=CAP_SYS_NICE CAP_IPC_LOCK
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+
+[Install]
+WantedBy=multi-user.target

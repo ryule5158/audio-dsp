@@ -118,8 +118,14 @@ void AudMpuFxChain_Process(void *user,
             Aud_Svf_Process(&chain->filter[channel], dry);
             filtered = dry + (Aud_Svf_Low(&chain->filter[channel]) - dry) *
                 chain->params.filter_mix;
-            driven[channel] = Aud_Overdrive_Process(&chain->drive[channel],
-                                                     filtered);
+            if (chain->params.drive <= 0.0f) {
+                driven[channel] = filtered;
+            } else {
+                float saturated = Aud_Overdrive_Process(&chain->drive[channel],
+                                                        filtered);
+                driven[channel] = filtered + (saturated - filtered) *
+                    chain->params.drive;
+            }
             wet[channel] = Aud_DelayLine_Read(&chain->delay[channel]);
         }
 
