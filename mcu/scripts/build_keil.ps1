@@ -1,6 +1,7 @@
 param(
-    [ValidateSet("SelfTest", "WM8960", "Both")]
-    [string]$Target = "Both",
+    [ValidateSet("SelfTest", "WM8960", "Generic_DSP", "LVGL", "Both", "All")]
+    [string]$Target = "All",
+    [switch]$DetailedLog,
     [string]$Uv4Exe = (Join-Path $env:LOCALAPPDATA "Keil_v5\UV4\UV4.exe"),
     [string]$ArmClangExe = (Join-Path $env:LOCALAPPDATA `
         "Keil_v5\ARM\ARMCLANG\Bin\armclang.exe")
@@ -70,13 +71,117 @@ $projectTargetNames = @($projectXml.Project.Targets.Target |
 $optionsTargetNames = @($optionsXml.ProjectOpt.Target |
     ForEach-Object TargetName)
 $requiredTargetNames = @("STM32H743_Audio_SelfTest",
-                         "STM32H743_Audio_WM8960_Stream")
-if ($projectTargetNames.Count -ne 2 -or $optionsTargetNames.Count -ne 2 -or
+                         "STM32H743_Audio_WM8960_Stream",
+                         "STM32H743_Audio_Generic_DSP",
+                         "STM32H743_Audio_LVGL_UI")
+if ($projectTargetNames.Count -ne 4 -or $optionsTargetNames.Count -ne 4 -or
     @($requiredTargetNames | Where-Object {
         $projectTargetNames -notcontains $_ -or
         $optionsTargetNames -notcontains $_
     }).Count -ne 0) {
-    throw "Keil .uvprojx/.uvoptx are not synchronized to the two required targets"
+    throw "Keil .uvprojx/.uvoptx are not synchronized to the four required targets"
+}
+$cmsisPack = Join-Path $env:LOCALAPPDATA "Arm\Packs\ARM\CMSIS\6.3.0"
+$dspPack = Join-Path $env:LOCALAPPDATA "Arm\Packs\ARM\CMSIS-DSP\1.16.2"
+foreach ($packInput in @(
+    (Join-Path $cmsisPack "ARM.CMSIS.pdsc"),
+    (Join-Path $dspPack "ARM.CMSIS-DSP.pdsc")
+)) {
+    if (-not (Test-Path -LiteralPath $packInput)) {
+        throw "Required CMSIS Pack input is missing: $packInput"
+    }
+}
+$cmsisComponents = @($projectXml.Project.RTE.components.component |
+    Where-Object { $_.Cclass -eq "CMSIS" })
+if ($cmsisComponents.Count -ne 2 -or
+    @($cmsisComponents | Where-Object {
+        $_.targetInfos.targetInfo.name -ne "STM32H743_Audio_Generic_DSP"
+    }).Count -ne 0) {
+    throw "CMSIS RTE components are not isolated to the Generic_DSP target"
+}
+foreach ($targetNode in @($projectXml.Project.Targets.Target)) {
+    $targetName = [string]$targetNode.TargetName
+    $expectedStream = if ($targetName -eq
+        "STM32H743_Audio_WM8960_Stream") { "1" } else { "0" }
+    $expectedAnalysis = if ($targetName -eq
+        "STM32H743_Audio_Generic_DSP") { "1" } else { "0" }
+    $defines = [string]$targetNode.TargetOption.TargetArmAds.Cads.VariousControls.Define
+    foreach ($defineContract in @(
+        "AUDIO_BOARD_ENABLE_WM8960_STREAM=$expectedStream",
+        "AUDIO_BOARD_ENABLE_GENERIC_DSP=$expectedAnalysis"
+    )) {
+        if ($defines -notmatch
+            "(?:^|,)$([regex]::Escape($defineContract))(?:,|$)") {
+            throw "Wrong define matrix in $targetName : $defineContract"
+        }
+    }
+    $analysisGroups = @($targetNode.Groups.Group | Where-Object {
+        $_.GroupName -eq "Library/Generic DSP"
+    })
+    if ($analysisGroups.Count -ne 1) {
+        throw "Every Keil target must contain one synchronized Generic_DSP group"
+    }
+    $analysisFiles = @($analysisGroups[0].Files.File)
+    $analysisC = @($analysisFiles | Where-Object { $_.FileType -eq "1" })
+    $analysisHeaders = @($analysisFiles | Where-Object { $_.FileType -eq "5" })
+    if (($analysisC.Count -ne 14) -or ($analysisHeaders.Count -ne 15)) {
+        throw "Generic_DSP target source manifest is incomplete"
+    }
+    foreach ($analysisFile in $analysisC) {
+        $includeNode = $analysisFile.SelectSingleNode(
+            "FileOption/CommonProperty/IncludeInBuild")
+        if ($null -eq $includeNode -or
+            [string]$includeNode.InnerText -ne [string][int]$expectedAnalysis) {
+            throw "Generic_DSP IncludeInBuild flag is wrong in $targetName"
+        }
+    }
+    $includes = @(([string]$targetNode.TargetOption.TargetArmAds.Cads.VariousControls.IncludePath) -split ";")
+    if (($includes -contains "../App/Generic_DSP") -ne ($expectedAnalysis -eq "1")) {
+        throw "Wrong Generic_DSP include isolation in $targetName"
+    }
+    $lvglGroups = @($targetNode.Groups.Group | Where-Object {
+        $_.GroupName -eq "Library/LVGL v9.5"
+    })
+    if ($lvglGroups.Count -ne 1) {
+        throw "Every target must contain one synchronized LVGL v9.5 group"
+    }
+    $lvglC = @($lvglGroups[0].Files.File | Where-Object { $_.FileType -eq "1" })
+    if ($lvglC.Count -lt 3) {
+        throw "LVGL v9.5 source manifest is unexpectedly small in $targetName"
+    }
+    $expectedLvgl = if ($targetName -eq "STM32H743_Audio_LVGL_UI") { "1" } else { "0" }
+    $lvglDefine = "AUDIO_BOARD_ENABLE_LVGL_UI=$expectedLvgl"
+    if ($defines -notmatch
+        "(?:^|,)$([regex]::Escape($lvglDefine))(?:,|$)") {
+        throw "Wrong LVGL define matrix in $targetName"
+    }
+    foreach ($lvglInclude in @("../App/LVGL", "../App/LVGL/src", "../App/LVGL_UI")) {
+        if (($includes -contains $lvglInclude) -ne ($expectedLvgl -eq "1")) {
+            throw "Wrong LVGL include isolation in $targetName : $lvglInclude"
+        }
+    }
+    foreach ($lvglOnlyDefine in @("HAL_SPI_MODULE_ENABLED", "LV_CONF_INCLUDE_SIMPLE")) {
+        $hasDefine = $defines -match "(?:^|,)$lvglOnlyDefine(?:,|$)"
+        if ($hasDefine -ne ($expectedLvgl -eq "1")) {
+            throw "Wrong LVGL-only define in $targetName : $lvglOnlyDefine"
+        }
+    }
+    foreach ($lvglFile in $lvglC) {
+        $includeNode = $lvglFile.SelectSingleNode(
+            "FileOption/CommonProperty/IncludeInBuild")
+        if ($null -eq $includeNode -or
+            [string]$includeNode.InnerText -ne [string][int]$expectedLvgl) {
+            throw "LVGL IncludeInBuild flag is wrong in $targetName"
+        }
+    }
+}
+$debugDir = Join-Path $mdkDir "DebugConfig"
+foreach ($requiredTargetName in $requiredTargetNames) {
+    $debugPath = Join-Path $debugDir `
+        ($requiredTargetName + "_STM32H743IITx_1.1.1.dbgconf")
+    if (-not (Test-Path -LiteralPath $debugPath)) {
+        throw "Keil debugger configuration is missing: $debugPath"
+    }
 }
 
 [void](New-Item -ItemType Directory -Path $evidenceDir -Force)
@@ -99,13 +204,73 @@ if ($permissiveSources.Count -ne 49) { throw "Expected 49 permissive DSP objects
 
 $targetSpecs = @(
     @{ Key = "SelfTest"; Name = "STM32H743_Audio_SelfTest" },
-    @{ Key = "WM8960"; Name = "STM32H743_Audio_WM8960_Stream" }
+    @{ Key = "WM8960"; Name = "STM32H743_Audio_WM8960_Stream" },
+    @{ Key = "Generic_DSP"; Name = "STM32H743_Audio_Generic_DSP" },
+    @{ Key = "LVGL"; Name = "STM32H743_Audio_LVGL_UI" }
 )
-if ($Target -ne "Both") {
+if ($Target -eq "Both") {
+    $targetSpecs = @($targetSpecs | Where-Object {
+        $_.Key -in @("SelfTest", "WM8960")
+    })
+} elseif ($Target -ne "All") {
     $targetSpecs = @($targetSpecs | Where-Object { $_.Key -eq $Target })
+}
+$genericDspObjects = @(
+    "Adaptive", "Correlate", "Demod", "DSP_ProMax", "FFT", "Filter",
+    "FilterEx", "Fit", "IQ", "Measure", "ModelFit", "periodic_analyzer",
+    "SoftPll", "generic_dsp_selftest"
+)
+$lvglCPaths = @($projectXml.Project.Targets.Target[0].Groups.Group |
+    Where-Object { $_.GroupName -eq "Library/LVGL v9.5" } |
+    ForEach-Object { $_.Files.File } |
+    Where-Object { $_.FileType -eq "1" } |
+    ForEach-Object { [string]$_.FilePath })
+if ($lvglCPaths.Count -lt 3) {
+    throw "LVGL v9.5 source manifest is missing from the project"
+}
+
+function Get-DependencySourceCounts {
+    param([string]$OutputDirectory)
+
+    $sourceCounts = @{}
+    foreach ($dependency in @(Get-ChildItem -LiteralPath $OutputDirectory `
+            -File -Filter "*.d" -ErrorAction SilentlyContinue)) {
+        $dependencyText = (Get-Content -Raw -LiteralPath $dependency.FullName) `
+            -replace "\\\r?\n", " "
+        $objectMatch = [regex]::Match($dependencyText, '^([^\r\n]+?\.o):')
+        if (-not $objectMatch.Success) {
+            throw "Dependency file has no object target: $($dependency.FullName)"
+        }
+        $objectPath = [IO.Path]::GetFullPath(
+            (Join-Path $mdkDir $objectMatch.Groups[1].Value.Trim()))
+        $outputPrefix = [IO.Path]::GetFullPath($OutputDirectory) +
+            [IO.Path]::DirectorySeparatorChar
+        if (-not $objectPath.StartsWith($outputPrefix,
+                [StringComparison]::OrdinalIgnoreCase) -or
+            -not (Test-Path -LiteralPath $objectPath -PathType Leaf)) {
+            throw "Dependency target is missing or outside the output directory: $objectPath"
+        }
+        foreach ($match in [regex]::Matches(
+                $dependencyText, '(?i)(?:^|\s)([^\s:]+\.c)(?=\s|$)')) {
+            $sourceToken = $match.Groups[1].Value
+            $sourceFullPath = ([IO.Path]::GetFullPath(
+                (Join-Path $mdkDir $sourceToken)) -replace '\\', '/').ToLowerInvariant()
+            if ($sourceCounts.ContainsKey($sourceFullPath)) {
+                $sourceCounts[$sourceFullPath]++
+            }
+            else {
+                $sourceCounts[$sourceFullPath] = 1
+            }
+        }
+    }
+    return $sourceCounts
 }
 
 foreach ($spec in $targetSpecs) {
+    $runningUv4 = @(Get-Process -Name UV4 -ErrorAction SilentlyContinue)
+    if ($runningUv4.Count -ne 0) {
+        throw "Close the existing uVision instance before a clean rebuild; no process was stopped"
+    }
     $outputDir = Join-Path $mdkDir $spec.Name
     $targetLog = Join-Path $evidenceDir ("keil_{0}.log" -f $spec.Key.ToLowerInvariant())
     if (Test-Path -LiteralPath $outputDir) {
@@ -120,16 +285,17 @@ foreach ($spec in $targetSpecs) {
     Remove-Item -LiteralPath $mdkLog -Force -ErrorAction SilentlyContinue
     $build = Start-Process -FilePath $uv4Exe -WorkingDirectory $mdkDir `
         -ArgumentList @("-r", $projectPath, "-t", $spec.Name,
-                        "-j0", "-o", $mdkLog) -PassThru
-    Wait-Process -Id $build.Id -Timeout 120 -ErrorAction SilentlyContinue
+                        "-j0", "-o", $mdkLog) -WindowStyle Hidden -PassThru
+    Wait-Process -Id $build.Id -Timeout 300 -ErrorAction SilentlyContinue
     if (Get-Process -Id $build.Id -ErrorAction SilentlyContinue) {
         Stop-Process -Id $build.Id -Force
-        throw "Keil $($spec.Name) rebuild exceeded 120 seconds"
+        throw "Keil $($spec.Name) rebuild exceeded 300 seconds"
     }
     if (-not (Test-Path -LiteralPath $mdkLog)) {
         throw "Keil did not create a build log for $($spec.Name)"
     }
     $log = Get-Content -Raw -LiteralPath $mdkLog
+    Copy-Item -LiteralPath $mdkLog -Destination $targetLog -Force
     if ($log -notmatch "0 Error\(s\), 0 Warning\(s\)\.") {
         throw "Keil build did not meet the 0-error/0-warning gate for $($spec.Name)`n$log"
     }
@@ -154,7 +320,48 @@ foreach ($spec in $targetSpecs) {
     if ($missing.Count -ne 0) {
         throw "The Keil target did not compile all 49 permissive DSP objects: $($missing -join ', ')"
     }
-    Copy-Item -LiteralPath $mdkLog -Destination $targetLog -Force
-    Write-Host $log
-    Write-Host "Keil target $($spec.Name): 12.288 MHz MCLK / 3.072 MHz BCLK contract, 49 portable DSP objects and D2 SRAM DMA placement verified."
+    $missingGenericDsp = @($genericDspObjects | Where-Object {
+        -not (Test-Path -LiteralPath (Join-Path $outputDir ($_ + ".o")))
+    })
+    if (($spec.Key -eq "Generic_DSP") -and ($missingGenericDsp.Count -ne 0)) {
+        throw "The Generic_DSP target did not compile all 14 analysis objects: $($missingGenericDsp -join ', ')"
+    }
+    if (($spec.Key -ne "Generic_DSP") -and ($missingGenericDsp.Count -ne $genericDspObjects.Count)) {
+        throw "A non-analysis target unexpectedly compiled Generic_DSP objects"
+    }
+    $dependencySources = Get-DependencySourceCounts -OutputDirectory $outputDir
+    $lvglDependencyMatches = 0
+    foreach ($lvglPath in $lvglCPaths) {
+        $lvglFullPath = ([IO.Path]::GetFullPath(
+            (Join-Path $mdkDir $lvglPath)) -replace '\\', '/').ToLowerInvariant()
+        $actualCount = if ($dependencySources.ContainsKey($lvglFullPath)) {
+            [int]$dependencySources[$lvglFullPath]
+        }
+        else {
+            0
+        }
+        $expectedCount = if ($spec.Key -eq "LVGL") { 1 } else { 0 }
+        if ($actualCount -ne $expectedCount) {
+            throw "LVGL dependency isolation failed for $($spec.Name): $lvglPath expected $expectedCount, found $actualCount"
+        }
+        $lvglDependencyMatches += $actualCount
+    }
+    $expectedLvglObjects = if ($spec.Key -eq "LVGL") { $lvglCPaths.Count } else { 0 }
+    if ($lvglDependencyMatches -ne $expectedLvglObjects) {
+        throw "LVGL dependency isolation count failed for $($spec.Name): expected $expectedLvglObjects, found $lvglDependencyMatches"
+    }
+    if ($DetailedLog) {
+        Write-Host $log
+    } else {
+        ($log -split '\r?\n' | Where-Object {
+            $_ -match 'Using Compiler|Rebuild target|Program Size|Error\(s\)|Build Time'
+        }) | ForEach-Object { Write-Host $_ }
+        Write-Host "Full build log: $targetLog"
+    }
+    $analysisEvidence = if ($spec.Key -eq "Generic_DSP") {
+        ", 14 Generic DSP objects"
+    } else {
+        ""
+    }
+    Write-Host "Keil target $($spec.Name): 49 portable DSP objects$analysisEvidence; LVGL source/object matches=$lvglDependencyMatches; audio clock and D2 SRAM DMA map contracts verified (not hardware measurements)."
 }

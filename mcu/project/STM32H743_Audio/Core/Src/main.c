@@ -26,6 +26,9 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "audio_app.h"
+#if defined(AUDIO_BOARD_ENABLE_LVGL_UI) && AUDIO_BOARD_ENABLE_LVGL_UI
+#include "lvgl_ui.h"
+#endif
 
 /* USER CODE END Includes */
 
@@ -111,6 +114,10 @@ int main(void)
   MX_SAI1_Init();
   /* USER CODE BEGIN 2 */
   g_audio_app_status = (int32_t)AudioApp_Init();
+#if defined(AUDIO_BOARD_ENABLE_LVGL_UI) && AUDIO_BOARD_ENABLE_LVGL_UI
+  /* Display faults have their own g_lvgl_ui_status; do not overwrite audio diagnostics. */
+  (void)LvglUi_Init();
+#endif
 
   /* USER CODE END 2 */
 
@@ -122,6 +129,9 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
     (void)AudioApp_Service();
+#if defined(AUDIO_BOARD_ENABLE_LVGL_UI) && AUDIO_BOARD_ENABLE_LVGL_UI
+    LvglUi_Service();
+#endif
     __WFI();
   }
   /* USER CODE END 3 */

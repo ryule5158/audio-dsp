@@ -83,10 +83,17 @@ ACK、MCLK/BCLK/LRCLK、ADCDAT/DACDAT 以及实际模拟输入输出。
 
 ## 重新生成与编译
 
+2026-09-11 已重新执行完整 `verify_all.ps1`：CubeMX 再生成与四目标后处理、
+四目标 ArmClang 构建全部通过（最终 exit 0），每个目标 0 errors / 0 warnings。
+LVGL 的 466 个完整源路径均映射实际对象，另外三个目标为 0；官方 LVGL
+固定 commit 的 1,136 个导入文件逐个 SHA-256 一致。零警告结果包含
+`App/LVGL/ORIGIN.md` 中明确列出的三个文件级 warning 选项，未修改 vendor 源码。
+这些结果不代表 DSP 自检已在板上运行，也不代表显示、触摸或音频硬件验收。
+
 本机固定验证环境：STM32CubeMX 6.17.0、STM32CubeH7 1.13.0、Keil MDK
 5.43.1、ArmClang 6.24、STM32H7xx DFP 4.1.3。
 
-从仓库根目录执行完整验收（两个 Keil target 都会构建）：
+从仓库根目录执行完整验收（四个 Keil target 都会构建）：
 
 ```powershell
 & .\mcu\scripts\verify_all.ps1
@@ -100,13 +107,39 @@ ACK、MCLK/BCLK/LRCLK、ADCDAT/DACDAT 以及实际模拟输入输出。
 # 只构建某一个变体时：
 & .\mcu\scripts\build_keil.ps1 -Target SelfTest
 & .\mcu\scripts\build_keil.ps1 -Target WM8960
+& .\mcu\scripts\build_keil.ps1 -Target Generic_DSP
+& .\mcu\scripts\build_keil.ps1 -Target LVGL
 ```
 
 CubeMX 会覆盖 IDE 工程配置，因此 `regenerate_cubemx.ps1` 在生成后调用
 `postgenerate_keil.ps1`，恢复 ArmClang、App 源文件组、头文件路径和自定义
-scatter 文件，并同步 `.uvprojx/.uvoptx` 的两个 target。再生成脚本只接受
+scatter 文件，并同步 `.uvprojx/.uvoptx` 的四个 target。再生成脚本只接受
 本轮刷新的关键文件或本轮新鲜完成日志；预存的 `main.c/sai.c` 不能冒充
 本次 CubeMX 成功。不要只运行裸 CubeMX CLI 后立刻编译。
+
+## 可选通用 DSP 与 LVGL
+
+| Keil target 后缀 | 功能 | 可选依赖 |
+|---|---|---|
+| `SelfTest` | 根 DSP 启动自检，不启动 Codec/音频 DMA | 无 |
+| `WM8960_Stream` | 参考 WM8960 音频流 | 无 |
+| `Generic_DSP` | 通用分析库启动自检，不在音频 ISR 执行 | CMSIS-DSP 1.16.2 / CMSIS 6.3.0 Pack |
+| `LVGL_UI` | 独立 ST7789 参考 UI，不启动音频流 | 手动导入的官方 LVGL v9.5.0；不使用 LVGL Pack |
+
+四个目标均包含 49 个 permissive 根 DSP 源。Keil 项目项完全同步，通用分析
+与 LVGL 通过逐文件 `IncludeInBuild`、include 路径及宏隔离；不要仅删除其他
+目标里的 group 来做隔离。`build_keil.ps1` 会清理所选目标的生成目录并重编译，
+保存 `mcu/build/keil_*.log`，检查 `.d` 到实际 `.o` 的源路径映射、目标隔离和
+DMA 链接布局；检测到已打开的 uVision 时拒绝构建，不关闭用户 IDE。
+
+通用 DSP 的 27 个原始源文件在 `App/Generic_DSP`，来源与许可证边界见其
+`ORIGIN.md`；自检入口是 `GenericDsp_RunSelfTest()`，失败状态为
+`AUDIO_APP_GENERIC_DSP_SELF_TEST_FAILED=-5`。编译成功不等于板上自检已执行。
+
+LVGL 的参考接线、SPI 时钟、故障锁存、显示缓冲、触摸扩展入口和官方资料见
+[LVGL_UI/README.md](project/STM32H743_Audio/App/LVGL_UI/README.md)。该目标使用
+独立 `g_lvgl_ui_status` 等诊断，不覆盖音频状态。未指定或验证实际屏幕/触摸
+器件；GPIO 合同不是对用户现有硬件的识别结果，烧录前必须核对。
 
 ## 2026-08-24 验证证据
 

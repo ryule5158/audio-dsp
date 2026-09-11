@@ -129,7 +129,7 @@ function Get-GenerationEvidence {
 }
 
 $wrapper = Start-Process -FilePath $cubeMxExe `
-    -ArgumentList @("-q", $cliPath) -PassThru
+    -ArgumentList @("-q", $cliPath) -WindowStyle Hidden -PassThru
 $deadline = (Get-Date).AddSeconds(20)
 $cubeJava = $null
 do {
@@ -255,19 +255,56 @@ Assert-Text $mainPath @(
     "PeriphClkInitStruct.Sai1ClockSelection = RCC_SAI1CLKSOURCE_PLL3;",
     "MPU_InitStruct.BaseAddress = 0x30000000;",
     "#include `"audio_app.h`"",
-    "AudioApp_Init();"
+    "AudioApp_Init();",
+    "#if defined(AUDIO_BOARD_ENABLE_LVGL_UI) && AUDIO_BOARD_ENABLE_LVGL_UI",
+    "#include `"lvgl_ui.h`"",
+    "LvglUi_Init();",
+    "LvglUi_Service();"
 )
 
-& (Join-Path $PSScriptRoot "postgenerate_keil.ps1")
+# CubeMX intentionally has no SPI peripheral in the shared audio IOC. With
+# DeletePrevious=true it removes the manually added optional SPI driver.
+# Restore only this version-pinned LVGL dependency before Keil postprocessing;
+# HAL_SPI_MODULE_ENABLED and IncludeInBuild remain LVGL-target-only.
+$optionalHalFiles = @(
+    @("Inc\stm32h7xx_hal_spi.h", "9EA983FD0E3148A3291B2AA56B1D01709374A3A3845D6B592B3D3356B71F6CB5"),
+    @("Inc\stm32h7xx_hal_spi_ex.h", "44D854991D118840677DA5CE86D88B1E555FE811808354522AD2F198AC4FA66C"),
+    @("Src\stm32h7xx_hal_spi.c", "4EEB322662C6FC531E42DA9EEF1474B6B32221F848DD7EC4FB0C4F0C408A013B")
+)
+$halRelative = "Drivers\STM32H7xx_HAL_Driver"
+foreach ($entry in $optionalHalFiles) {
+    $source = Join-Path (Join-Path $CubePackage $halRelative) $entry[0]
+    if (-not (Test-Path -LiteralPath $source -PathType Leaf) -or
+        (Get-FileHash -LiteralPath $source -Algorithm SHA256).Hash -ne $entry[1]) {
+        throw "Optional LVGL HAL source does not match the pinned H7 V1.13.0 file: $source"
+    }
+}
+foreach ($entry in $optionalHalFiles) {
+    $source = Join-Path (Join-Path $CubePackage $halRelative) $entry[0]
+    $destination = Join-Path (Join-Path $projectDir $halRelative) $entry[0]
+    if (Test-Path -LiteralPath $destination -PathType Leaf) {
+        if ((Get-FileHash -LiteralPath $destination -Algorithm SHA256).Hash -ne $entry[1]) {
+            throw "Refusing to overwrite a modified optional HAL file: $destination"
+        }
+    } else {
+        Copy-Item -LiteralPath $source -Destination $destination
+    }
+}
+Write-Host "Optional LVGL SPI HAL restored and SHA-256 verified (3 official H7 V1.13.0 files)."
+
+& (Join-Path $PSScriptRoot "postgenerate_keil.ps1") `
+    -ProjectPath $uvprojxPath
 
 [xml]$keil = Get-Content -Raw -LiteralPath $uvprojxPath
 $targetNames = @($keil.Project.Targets.Target | ForEach-Object TargetName)
-if ($targetNames.Count -ne 2) {
-    throw "Keil project must contain exactly two generated targets"
+if ($targetNames.Count -ne 4) {
+    throw "Keil project must contain exactly four generated targets"
 }
 foreach ($requiredTarget in @(
     "STM32H743_Audio_SelfTest",
-    "STM32H743_Audio_WM8960_Stream"
+    "STM32H743_Audio_WM8960_Stream",
+    "STM32H743_Audio_Generic_DSP",
+    "STM32H743_Audio_LVGL_UI"
 )) {
     if ($targetNames -notcontains $requiredTarget) {
         throw "Keil target missing after CubeMX regeneration: $requiredTarget"
@@ -286,18 +323,60 @@ foreach ($target in @($keil.Project.Targets.Target)) {
     }
     $define = $target.TargetOption.TargetArmAds.Cads.VariousControls.Define
     $expectedStream = if ($target.TargetName -like "*WM8960*") { "1" } else { "0" }
+    $expectedAnalysis = if ($target.TargetName -like "*Generic_DSP*") { "1" } else { "0" }
     if ($define -notmatch
         "(?:^|,)AUDIO_BOARD_ENABLE_WM8960_STREAM=$expectedStream(?:,|$)") {
         throw "Keil target $($target.TargetName) has the wrong stream define"
     }
+    if ($define -notmatch
+        "(?:^|,)AUDIO_BOARD_ENABLE_GENERIC_DSP=$expectedAnalysis(?:,|$)") {
+        throw "Keil target $($target.TargetName) has the wrong analysis define"
+    }
+    $analysisGroups = @($target.Groups.Group |
+        Where-Object { $_.GroupName -eq "Library/Generic DSP" })
+    if ($analysisGroups.Count -ne 1) {
+        throw "Every Keil target must contain one synchronized Generic_DSP group"
+    }
+    $analysisFiles = @($analysisGroups[0].Files.File)
+    $analysisC = @($analysisFiles | Where-Object { $_.FileType -eq "1" })
+    $analysisHeaders = @($analysisFiles | Where-Object { $_.FileType -eq "5" })
+    if (($analysisC.Count -ne 14) -or ($analysisHeaders.Count -ne 15)) {
+        throw "Generic_DSP target source manifest is incomplete"
+    }
+    foreach ($analysisFile in $analysisC) {
+        $includeNode = $analysisFile.SelectSingleNode(
+            "FileOption/CommonProperty/IncludeInBuild")
+        if ($null -eq $includeNode -or
+            [string]$includeNode.InnerText -ne [string][int]$expectedAnalysis) {
+            throw "Generic_DSP IncludeInBuild flag is wrong in $($target.TargetName)"
+        }
+    }
 }
 [xml]$keilOptions = Get-Content -Raw -LiteralPath $uvoptxPath
 $optionTargets = @($keilOptions.ProjectOpt.Target)
-if ($optionTargets.Count -ne 2 -or
+if ($optionTargets.Count -ne 4 -or
     @($optionTargets | Where-Object {
         $_.TargetName -in @("STM32H743_Audio_SelfTest",
-                            "STM32H743_Audio_WM8960_Stream")
-    }).Count -ne 2) {
-    throw "Keil user options are not synchronized to the two project targets"
+                            "STM32H743_Audio_WM8960_Stream",
+                            "STM32H743_Audio_Generic_DSP",
+                            "STM32H743_Audio_LVGL_UI")
+    }).Count -ne 4) {
+    throw "Keil user options are not synchronized to the four project targets"
 }
-Write-Host "CubeMX regeneration and SAI/PLL3/DMA contract checks passed."
+$cmsisComponents = @($keil.Project.RTE.components.component |
+    Where-Object { $_.Cclass -eq "CMSIS" })
+if ($cmsisComponents.Count -ne 2 -or
+    @($cmsisComponents | Where-Object {
+        $_.targetInfos.targetInfo.name -ne "STM32H743_Audio_Generic_DSP"
+    }).Count -ne 0) {
+    throw "CMSIS RTE components are not isolated to the Generic_DSP target"
+}
+$debugDir = Join-Path (Split-Path -Parent $uvprojxPath) "DebugConfig"
+foreach ($requiredTarget in $targetNames) {
+    $debugPath = Join-Path $debugDir `
+        ($requiredTarget + "_STM32H743IITx_1.1.1.dbgconf")
+    if (-not (Test-Path -LiteralPath $debugPath)) {
+        throw "Keil debugger configuration is missing: $debugPath"
+    }
+}
+Write-Host "CubeMX regeneration and four-target SAI/PLL3/DMA/RTE/LVGL isolation contract checks passed."

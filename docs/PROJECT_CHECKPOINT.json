@@ -1,0 +1,76 @@
+{
+  "schema": "audio-dsp-resume-checkpoint/v1",
+  "generated_at": "2026-09-11T11:34:44+08:00",
+  "repository": "AUDIO_DSP",
+  "scope": {
+    "active": [
+      "mcu_h743iit6_cubemx_keil",
+      "fpga_bx71_zynq7020_vivado2018_xsdk"
+    ],
+    "frozen": [
+      "mpu_imx6ull",
+      "ubuntu_vm",
+      "gitee_login"
+    ],
+    "toolchains": {
+      "mcu": "STM32H743IIT6; STM32CubeMX + Keil MDK",
+      "fpga": "BX71; Zynq-7020; Vivado 2018.3 + XSDK"
+    }
+  },
+  "worklog": {
+    "path": "docs/PROJECT_WORKLOG.md",
+    "append_only": true,
+    "last_entry": "W-20260911-117",
+    "line_count": 1852,
+    "max_sequence": 117,
+    "sha256": "EDA619CE74AF09ECF34C9EA220D6D0FF13F03EBF8A14D7E4FDA0CC57F75D703A"
+  },
+  "git": {
+    "branch": "main",
+    "head": "5d5cf9cf5b3fecfc2c5ec90b85acc8e25fb08e26",
+    "origin": "git@github.com:ryule5158/audio-dsp.git",
+    "origin_main_at_snapshot": "5d5cf9cf5b3fecfc2c5ec90b85acc8e25fb08e26",
+    "origin_main_evidence_entry": "W-20260831-068",
+    "remote_checked_this_update": false,
+    "mcu_phase_published": false,
+    "worktree_expected_dirty": true
+  },
+  "stage": {
+    "name": "mcu_formal_four_target_verification",
+    "status": "passed_unpublished",
+    "next_action": "Review the exact verified MCU diff and provenance, then make a scoped MCU phase commit and push with full SHA and remote verification. Complete FPGA native materialization, Vivado 2018.3 builds and XSDK next; isolated Zynq PS LVGL remains unfinished. Read any later worklog entry before acting.",
+    "checkpoint_policy": "This is a recoverable snapshot. Any later append-only worklog entry or commit may make it stale; the recovery script reports that explicitly."
+  },
+  "verified_evidence": [
+    "W-20260831-074 and W-20260901-075: explicit UTF-8 recovery works in Windows PowerShell 5.1 and PowerShell 7; append-only log advancement is detected as stale.",
+    "W-20260909-113: current MCU names use Generic_DSP; all 27 canonical vendor C/H files retained their hashes, with historical naming and source provenance preserved.",
+    "W-20260911-117: formal verify_all session 84187 exited 0 after pinned official STM32H7 V1.13.0 SPI dependency restoration, CubeMX regeneration and all four target contracts.",
+    "W-20260911-117: SelfTest, WM8960_Stream, Generic_DSP and LVGL_UI all built with 0 errors and 0 warnings; all include 49 portable DSP objects, only Generic_DSP includes 14 analysis objects, and only LVGL_UI maps all 466 LVGL source/dependency/object paths. D2 SRAM DMA map contracts passed.",
+    "W-20260911-117: LVGL v9.5.0 commit 85aa60d18b3d5e5588d7b247abf90198f07c8a63 archive-to-local byte comparison passed for 1136 official files with zero mismatches. Only three documented file-local warning options are used; no global warning suppression."
+  ],
+  "native_project_status": {
+    "mcu_formal_regenerate": "passed_four_targets_W117",
+    "mcu_keil_build": "passed_four_targets_zero_errors_zero_warnings_W117",
+    "mcu_lvgl_upstream": "passed_1136_files_zero_mismatches_W117",
+    "mcu_release": "not_committed_or_pushed",
+    "fpga_selftest_xpr": "present_but_not_accepted_as_built",
+    "fpga_soc_i2s_xpr": "missing_at_snapshot",
+    "fpga_vivado_build": "not_accepted",
+    "fpga_xsdk_build": "not_accepted",
+    "zynq_ps_lvgl": "not_completed",
+    "hardware_validation": "not_run"
+  },
+  "open_gates": [
+    "Review exact MCU phase files and provenance, commit only the intended paths, push and independently verify the full remote SHA; preserve unrelated dirty FPGA/docs work.",
+    "Materialize and audit native FPGA selftest and soc_i2s projects, then run Vivado 2018.3 simulation, synthesis, implementation, timing/DRC, bitstream and hardware export gates.",
+    "Build XSDK software and validate actual OCM LOAD ranges where PS DDR is disabled; complete the isolated Zynq PS LVGL port.",
+    "Keep MCU LVGL source, configuration and build selection isolated from the other targets; maintain current Generic_DSP names and original provenance.",
+    "MCU display, touch and audio hardware are unverified; FPGA/BX71 hardware is unverified. Software build and source checks are not physical validation.",
+    "MPU, VM and Gitee work remain stopped. Preserve all historical worklog entries and failures."
+  ],
+  "last_failure": {
+    "entry": "W-20260911-116",
+    "summary": "Formal verify_all failed after CubeMX removed manually added SPI drivers because SPI was not enabled in the IOC. An earlier All session had no final exit code, and an LVGL comparison referenced a vanished temporary source directory.",
+    "recovery": "Resolved for MCU in W-20260911-117: restore only three hash-pinned official SPI files before postgenerate, reject conflicting targets, run formal four-target verify_all to exit 0, and compare 1136 LVGL files directly with the pinned official archive. Historical failures remain preserved."
+  }
+}

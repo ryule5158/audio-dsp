@@ -8,6 +8,14 @@
 
 #include <stddef.h>
 
+#ifndef AUDIO_BOARD_ENABLE_GENERIC_DSP
+#define AUDIO_BOARD_ENABLE_GENERIC_DSP 0u
+#endif
+
+#if AUDIO_BOARD_ENABLE_GENERIC_DSP
+#include "generic_dsp_selftest.h"
+#endif
+
 #if AUDIO_BOARD_CHANNELS != 2u
 #error "This reference application requires stereo audio"
 #endif
@@ -220,6 +228,13 @@ AudioAppStatus AudioApp_Init(void)
         g_audio_app_status = AUDIO_APP_DSP_SELF_TEST_FAILED;
         return AUDIO_APP_DSP_SELF_TEST_FAILED;
     }
+#if AUDIO_BOARD_ENABLE_GENERIC_DSP
+    /* Generic DSP is a startup/service operation, never a SAI callback. */
+    if (GenericDsp_RunSelfTest() != 0) {
+        g_audio_app_status = AUDIO_APP_GENERIC_DSP_SELF_TEST_FAILED;
+        return AUDIO_APP_GENERIC_DSP_SELF_TEST_FAILED;
+    }
+#endif
     if (AudioDsp_Init(&s_dsp, s_delay_left, s_delay_right,
                       AUDIO_DELAY_STORAGE_SAMPLES) != 0) {
         g_audio_app_status = AUDIO_APP_BAD_CONFIG;

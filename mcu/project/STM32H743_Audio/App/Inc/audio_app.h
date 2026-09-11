@@ -8,7 +8,8 @@ typedef enum {
     AUDIO_APP_BAD_CONFIG = -1,
     AUDIO_APP_DSP_SELF_TEST_FAILED = -2,
     AUDIO_APP_CODEC_FAILED = -3,
-    AUDIO_APP_DMA_FAILED = -4
+    AUDIO_APP_DMA_FAILED = -4,
+    AUDIO_APP_GENERIC_DSP_SELF_TEST_FAILED = -5
 } AudioAppStatus;
 
 extern volatile int32_t g_audio_app_status;

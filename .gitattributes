@@ -40,3 +40,17 @@ mcu/project/STM32H743_Audio/MDK-ARM/startup_stm32h743xx.s -whitespace
 *.pdf binary
 *.bin binary
 *.raw binary
+# Fixed upstream byte provenance must survive git add/checkout on Windows.
+mcu/project/STM32H743_Audio/App/LVGL/src/** -text -whitespace
+mcu/project/STM32H743_Audio/App/LVGL/lvgl.h -text
+mcu/project/STM32H743_Audio/App/LVGL/lvgl_private.h -text
+mcu/project/STM32H743_Audio/App/LVGL/lv_version.h -text
+mcu/project/STM32H743_Audio/App/LVGL/lv_conf_template.h -text -whitespace
+mcu/project/STM32H743_Audio/App/LVGL/LICENCE.txt -text
+mcu/project/STM32H743_Audio/App/LVGL/COPYRIGHTS.md -text
+mcu/project/STM32H743_Audio/App/Generic_DSP/*.c -text -whitespace
+mcu/project/STM32H743_Audio/App/Generic_DSP/*.h -text -whitespace
+mcu/project/STM32H743_Audio/Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_spi.h -text
+mcu/project/STM32H743_Audio/Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_spi_ex.h -text
+mcu/project/STM32H743_Audio/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_spi.c -text
+mcu/project/STM32H743_Audio/MDK-ARM/RTE/** -whitespace
