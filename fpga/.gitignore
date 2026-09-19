@@ -1,0 +1,24 @@
+/build/
+/.Xil/
+/projects/*/*.cache/
+/projects/*/*.gen/
+/projects/*/*.hw/
+/projects/*/*.ip_user_files/
+/projects/*/*.runs/
+/projects/*/*.sim/
+/projects/*/.Xil/
+/projects/*/*.jou
+/projects/*/*.log
+/*.jou
+/*.log
+/*.str
+# Reproducible Vivado-generated BD products. Keep the native XPR, source BD
+# and wrapper; regenerate licensed IP products with installed Vivado 2018.3.
+/projects/*/*.srcs/sources_1/bd/*/ip/
+/projects/*/*.srcs/sources_1/bd/*/ipshared/
+/projects/*/*.srcs/sources_1/bd/*/sim/
+/projects/*/*.srcs/sources_1/bd/*/synth/
+/projects/*/*.srcs/sources_1/bd/*/hw_handoff/
+/projects/*/*.srcs/sources_1/bd/mref/
+/projects/*/*.srcs/sources_1/bd/*/*.bxml
+/projects/*/*.srcs/sources_1/bd/*/*_ooc.xdc

@@ -1,6 +1,6 @@
 {
   "schema": "audio-dsp-resume-checkpoint/v1",
-  "generated_at": "2026-09-11T11:34:44+08:00",
+  "generated_at": "2026-09-19T19:37:22+08:00",
   "repository": "AUDIO_DSP",
   "scope": {
     "active": [
@@ -12,6 +12,12 @@
       "ubuntu_vm",
       "gitee_login"
     ],
+    "user_deferred": [
+      "mcu_lvgl_external_sdram_pending_board_model_pin_and_fmc_data_not_a_current_blocker"
+    ],
+    "removed_from_current_delivery": [
+      "fpga_zynq_ps_lvgl_by_explicit_user_scope_change_20260914"
+    ],
     "toolchains": {
       "mcu": "STM32H743IIT6; STM32CubeMX + Keil MDK",
       "fpga": "BX71; Zynq-7020; Vivado 2018.3 + XSDK"
@@ -20,25 +26,27 @@
   "worklog": {
     "path": "docs/PROJECT_WORKLOG.md",
     "append_only": true,
-    "last_entry": "W-20260911-117",
-    "line_count": 1852,
-    "max_sequence": 117,
-    "sha256": "EDA619CE74AF09ECF34C9EA220D6D0FF13F03EBF8A14D7E4FDA0CC57F75D703A"
+    "last_entry": "W-20260919-121",
+    "line_count": 1907,
+    "max_sequence": 121,
+    "sha256": "64A72026F352A4F257DAF3D78B5676E50D216CD7F5CFF3C0921173ED1A55030F"
   },
   "git": {
     "branch": "main",
-    "head": "5d5cf9cf5b3fecfc2c5ec90b85acc8e25fb08e26",
+    "head": "e4af1fe28314aa70c086889634c448c7b6026294",
     "origin": "git@github.com:ryule5158/audio-dsp.git",
-    "origin_main_at_snapshot": "5d5cf9cf5b3fecfc2c5ec90b85acc8e25fb08e26",
-    "origin_main_evidence_entry": "W-20260831-068",
+    "origin_main_at_snapshot": "e4af1fe28314aa70c086889634c448c7b6026294",
+    "origin_main_evidence_entry": "W-20260911-118",
     "remote_checked_this_update": false,
-    "mcu_phase_published": false,
+    "mcu_phase_published": true,
+    "latest_published_worklog_entry": "W-20260911-117",
+    "newer_worklog_and_checkpoint_changes_uncommitted": true,
     "worktree_expected_dirty": true
   },
   "stage": {
-    "name": "mcu_formal_four_target_verification",
-    "status": "passed_unpublished",
-    "next_action": "Review the exact verified MCU diff and provenance, then make a scoped MCU phase commit and push with full SHA and remote verification. Complete FPGA native materialization, Vivado 2018.3 builds and XSDK next; isolated Zynq PS LVGL remains unfinished. Read any later worklog entry before acting.",
+    "name": "fpga_audio_only_final_validation_and_publication",
+    "status": "audio_only_xsdk_actual_exit0_native_relocation_passed_extended_simulation_log_passed_fpga_unpublished",
+    "next_action": "Complete final DSP simulation and native-input checks, review and publish only the exact FPGA phase with actual commit/push/remote SHA evidence, then focus on easy-to-call and portable MCU DSP interfaces. FPGA LVGL is removed from the current scope by the user; do not resume it. External SDRAM for MCU LVGL is explicitly user-deferred pending board/model/pin/FMC data and is not a current blocker. Preserve MCU LVGL, all warnings and untested hardware boundaries. The recorder stops writing after W121 until the main agent supplies publication or further actual evidence. Read any later worklog entries before acting.",
     "checkpoint_policy": "This is a recoverable snapshot. Any later append-only worklog entry or commit may make it stale; the recovery script reports that explicitly."
   },
   "verified_evidence": [
@@ -46,31 +54,64 @@
     "W-20260909-113: current MCU names use Generic_DSP; all 27 canonical vendor C/H files retained their hashes, with historical naming and source provenance preserved.",
     "W-20260911-117: formal verify_all session 84187 exited 0 after pinned official STM32H7 V1.13.0 SPI dependency restoration, CubeMX regeneration and all four target contracts.",
     "W-20260911-117: SelfTest, WM8960_Stream, Generic_DSP and LVGL_UI all built with 0 errors and 0 warnings; all include 49 portable DSP objects, only Generic_DSP includes 14 analysis objects, and only LVGL_UI maps all 466 LVGL source/dependency/object paths. D2 SRAM DMA map contracts passed.",
-    "W-20260911-117: LVGL v9.5.0 commit 85aa60d18b3d5e5588d7b247abf90198f07c8a63 archive-to-local byte comparison passed for 1136 official files with zero mismatches. Only three documented file-local warning options are used; no global warning suppression."
+    "W-20260911-117: LVGL v9.5.0 commit 85aa60d18b3d5e5588d7b247abf90198f07c8a63 archive-to-local byte comparison passed for 1136 official files with zero mismatches. Only three documented file-local warning options are used; no global warning suppression.",
+    "W-20260911-118: MCU commit e4af1fe28314aa70c086889634c448c7b6026294 contains only the scoped 1197 files; push exited 0 and Windows OpenSSH with strict host-key checking verified the same remote main SHA. Source and index LVGL comparisons both passed for 1136 files after targeted renormalization.",
+    "W-20260911-118: both portable native XPR projects were materialized and actually opened; selftest file count 14, soc_i2s file count 89 with BD opened and validated, no missing or external files. FPGA changes remain unpublished.",
+    "W-20260912-119: complete Vivado 2018.3 logs contain exit 0 commands and normal Exiting, with fresh 2026-09-11 artifacts and FPGA_XSIM_OK for both profiles. Original exec sessions could not be recovered, so their final process exit codes were not re-obtained.",
+    "W-20260912-119: selftest WNS/WHS 2.038/0.130 ns, LUT 1280, FF 512, bit 4045681 bytes; soc_i2s WNS/WHS 38.658/0.121 ns, LUT 1759, FF 1281, bit 4045677 bytes, HDF 19805 bytes. Both RAMB36 24, DSP48 22, RAM64M 0.",
+    "W-20260912-119: each profile has DRC Error 0, Critical 0, Warning 49, not a clean zero-warning build. Common warnings DPIP-1 18, DPOP-1 15, DPOP-2 15; selftest adds ZPS7-1 1 and soc_i2s adds IOSR-1 1.",
+    "W-20260913-120: XSDK session 75936 failed with PowerShell exit 1 despite XSCT exit 0 because the required success marker and application Debug/makefile were missing. The wrapper correctly rejected the incomplete build.",
+    "W-20260913-120: after low-OCM linker mapping, Debug/Xilinx.spec preparation, actual BSP build, CDT application makefile generation and direct make/readelf gates, retry session 73757 ended with actual process exit 0 and FPGA_XSDK_BUILD_OK. Complete output is in fpga/build/xsdk_build.log; command-local PATH changes are restored in finally.",
+    "W-20260913-120: fresh ELF timestamp 2026-09-12 05:04:05, 284932 bytes, entry 0, one LOAD segment with matching virtual/physical extent from 0 to 0xD840, entirely below 0x30000; text 30808, data 1160, bss 22576. main was not run and no hardware download occurred.",
+    "W-20260913-120: Hsi 61-9 empty_application MSS warning and the initial CDT pre-clean missing-makefile error remain in the evidence. Subsequent compile/link/direct make and final gates passed, but the full flow is not zero-error/zero-warning.",
+    "W-20260919-121 is a late summary recorded on 2026-09-19 for work actually performed on 2026-09-13 and 2026-09-14; no execution dates or unrecovered process exit codes are inferred.",
+    "W-20260919-121 historical PS LVGL trial: the 2026-09-13 ARM build overflowed OCM by 44528 bytes. After switching to Thumb, fpga/build/xsdk_lvgl_build.log records success at 2026-09-13 13:28:17; ELF 2145984 bytes, SHA256 BBFFACAF0495C086A73904D1A080B416BC8B807C9E4BD80F746880920344125E, text/data/bss 121388/1148/60880, entry 0 and one LOAD extent 0..0x2EDF0, leaving only 4624 bytes below 0x30000. Session 48318 final exit was not recovered and no hardware ran. This profile was subsequently removed from the current delivery scope.",
+    "W-20260919-121 native clean relocation: on 2026-09-13 only four native inputs (two XPRs, BD, wrapper) and rtl/tb/constraints/vivado were copied to tmp/fpga_native_clean_20260913/fpga. Session 78856 returned actual exit 0; native_clean_soc_20260913.log lists 89 files after IP regeneration and BD validation. Long-path and other warnings remain.",
+    "W-20260919-121 scope change: on 2026-09-14 the user removed FPGA LVGL from the requested scope. Five unpublished lvgl_ps files and the build_software LVGL option were removed via apply_patch; build_xsdk.tcl no longer imports MCU vendor files and current FPGA software is audio-only. Ignored LVGL workspace/log/ELF remain historical evidence. MCU LVGL remains in scope.",
+    "W-20260919-121 user-deferred MCU SDRAM: the current IOC has no FMC IP and SDRAM model/pin/board data are missing. After being asked for board data, the user explicitly deferred the work. Do not implement it now or treat it as a current blocker.",
+    "W-20260919-121 audio-only rebuild: session 31694 was actually collected by write_stdin with exit 0, completed 2026-09-14 10:49:38. ELF 284932 bytes, SHA256 546E49095D270A8CB11D333E3D6D2DD71F12543907D0D61DE79EF5A83E1BFFF5 matches W120, entry 0 with one LOAD extent 0..0xD840; the app contains only main.o and wm8960.o, no LVGL. Hsi 61-9 and initial pre-clean diagnostics remain; no main or PS startup ran.",
+    "W-20260919-121 DSP regression expansion: 2026-09-14 testbench additions cover delay wrap/reset-history/zero-to-one, feedback 0.5, dry bypass, CDC frame boundary, AXI strobes/invalid writes and watchdog. dsp_final_sim_20260914.log records FPGA_RTL_TESTS_OK at 4720 ns and FPGA_XSIM_OK at 10:51:45; session 45707 final exit was not recovered. Changes were testbench, build scope and README register contract, not RTL functionality.",
+    "W-20260919-121 2026-09-19 recheck: the main agent inspected the logs and audio ELF hash again; HEAD remains e4af1fe28314aa70c086889634c448c7b6026294 and the FPGA phase remains unpublished. Remote SHA was not checked for this checkpoint. MCU W117/W118 and each Vivado profile's 49 DRC warnings in W119 remain the applicable historical evidence; all hardware remains untested."
   ],
   "native_project_status": {
     "mcu_formal_regenerate": "passed_four_targets_W117",
     "mcu_keil_build": "passed_four_targets_zero_errors_zero_warnings_W117",
     "mcu_lvgl_upstream": "passed_1136_files_zero_mismatches_W117",
-    "mcu_release": "not_committed_or_pushed",
-    "fpga_selftest_xpr": "present_but_not_accepted_as_built",
-    "fpga_soc_i2s_xpr": "missing_at_snapshot",
-    "fpga_vivado_build": "not_accepted",
-    "fpga_xsdk_build": "not_accepted",
-    "zynq_ps_lvgl": "not_completed",
+    "mcu_release": "e4af1fe28314aa70c086889634c448c7b6026294_pushed_remote_verified_W118",
+    "fpga_selftest_xpr": "materialized_opened_checked_W118",
+    "fpga_soc_i2s_xpr": "materialized_opened_bd_validated_W118",
+    "fpga_vivado_build": "completed_log_and_artifact_evidence_49_drc_warnings_each_W119",
+    "fpga_native_clean_relocation": "passed_actual_exit0_ip_regeneration_bd_validate_files89_session78856_20260913_W121_warnings_remain",
+    "fpga_xsdk_build": "audio_only_passed_actual_exit0_and_ocm_elf_gates_session31694_20260914_W121",
+    "fpga_dsp_extended_simulation": "log_markers_passed_4720ns_20260914_W121_session45707_final_exit_not_recovered",
+    "fpga_release": "not_committed_or_pushed",
+    "fpga_software_scope": "audio_only_user_decision_20260914_W121",
+    "zynq_ps_lvgl": "removed_from_current_scope_historical_thumb_log_and_elf_only_W121",
+    "mcu_external_sdram": "user_deferred_pending_board_data_not_a_current_blocker_W121",
     "hardware_validation": "not_run"
   },
+  "fpga_artifact_sha256": {
+    "evidence_entry": "W-20260913-120",
+    "elf_reverified_entry": "W-20260919-121",
+    "selftest_bit": "B9C9D5FA2E28430338AFD310FA1976A3E26CE05EEE09684EF9D5A99B0FB1C76A",
+    "soc_i2s_bit": "E9B6D6B1277082E5D648B27D39C6D4E31C7A15F9F26D001D73C68837658AD9B1",
+    "hdf": "46FFD238DF176E23A4A4C2B2B661BD336E77053B0111081A1DCB0410BC50E03C",
+    "elf": "546E49095D270A8CB11D333E3D6D2DD71F12543907D0D61DE79EF5A83E1BFFF5"
+  },
   "open_gates": [
-    "Review exact MCU phase files and provenance, commit only the intended paths, push and independently verify the full remote SHA; preserve unrelated dirty FPGA/docs work.",
-    "Materialize and audit native FPGA selftest and soc_i2s projects, then run Vivado 2018.3 simulation, synthesis, implementation, timing/DRC, bitstream and hardware export gates.",
-    "Build XSDK software and validate actual OCM LOAD ranges where PS DDR is disabled; complete the isolated Zynq PS LVGL port.",
+    "Audio-only XSDK rebuild and OCM ELF gates passed with actual exit 0 in W121, but main/PS startup and all hardware behavior remain untested. Preserve the first failed XSDK attempt and intermediate pre-clean error; do not report a zero-error/zero-warning full flow.",
+    "Retain all 49 DRC warnings per profile and their impact boundaries, especially selftest ZPS7-1 PS boot requirements and soc_i2s IOSR-1 reset sharing; never report DRC=0 or zero warnings.",
+    "Complete final DSP simulation and native-input checks, preserving that session 45707 has log pass markers but no recovered final process exit. Then review and publish only the intended FPGA phase files with actual commit/push/remote SHA evidence. Native clean relocation session 78856 passed with warnings, not a zero-warning result.",
+    "Do not resume FPGA PS LVGL: the user explicitly removed it from the current scope on 2026-09-14. Retained ignored workspace/log/ELF are historical evidence only, not current deliverables. FPGA software remains audio-only.",
+    "External SDRAM for MCU LVGL is user-deferred and not a current blocker. Do not implement FMC/SDRAM settings without later user direction and verified board/model/pin data. After FPGA publication, prioritize easy-to-call and portable MCU DSP interfaces.",
+    "Do not repeat the published MCU phase or include unrelated root README, ignore rules or historical PDF deletions without exact scope review.",
     "Keep MCU LVGL source, configuration and build selection isolated from the other targets; maintain current Generic_DSP names and original provenance.",
     "MCU display, touch and audio hardware are unverified; FPGA/BX71 hardware is unverified. Software build and source checks are not physical validation.",
     "MPU, VM and Gitee work remain stopped. Preserve all historical worklog entries and failures."
   ],
   "last_failure": {
-    "entry": "W-20260911-116",
-    "summary": "Formal verify_all failed after CubeMX removed manually added SPI drivers because SPI was not enabled in the IOC. An earlier All session had no final exit code, and an LVGL comparison referenced a vanished temporary source directory.",
-    "recovery": "Resolved for MCU in W-20260911-117: restore only three hash-pinned official SPI files before postgenerate, reject conflicting targets, run formal four-target verify_all to exit 0, and compare 1136 LVGL files directly with the pinned official archive. Historical failures remain preserved."
+    "entry": "W-20260919-121",
+    "summary": "Historical 2026-09-13 PS LVGL ARM build overflowed OCM by 44528 bytes. Earlier W120 XSDK session 75936 PowerShell exit 1, missing application Debug/makefile, missing required success marker, initial CDT pre-clean diagnostics and Hsi 61-9 warning remain preserved in the worklog.",
+    "recovery": "The PS LVGL Thumb log reports 2026-09-13 13:28:17 success and a single OCM LOAD ending at 0x2EDF0 with only 4624 bytes headroom, but session 48318 final exit was never recovered and no hardware ran. The user then removed FPGA LVGL from current scope on 2026-09-14; no current PS LVGL completion task remains. Audio-only rebuild session 31694 returned actual exit 0 and the W120 audio ELF hash/LOAD extent remained unchanged. Native clean relocation session 78856 returned actual exit 0 with warnings; extended DSP simulation has pass markers but session 45707 final exit is uncollected. No hardware execution or FPGA publication is established; W119 DRC warnings and other historical failures remain preserved."
   }
 }

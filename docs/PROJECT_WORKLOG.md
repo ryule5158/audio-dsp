@@ -1850,3 +1850,58 @@ sed -n '1,$p' docs/PROJECT_WORKLOG.md
 - 警告策略与历史边界：仍只使用三项已文档化的文件级 warning 选项，没有全局压制警告，也未修改官方 LVGL 源码。W-116 的临时来源路径失效、会话退出码缺失和 CubeMX 清除 SPI 驱动失败全部保留，本次成功不回写历史。
 - 状态与发布边界：MCU 已通过当前四目标正式再生成、严格构建、对象隔离及官方 LVGL 源码比对；尚未进行显示、触摸、音频或任何真实硬件验证，未进行 FPGA 新构建，PS LVGL 未完成，MPU/VM/Gitee 继续停止。未暂存、未提交、未推送；随后仅同步 `docs/PROJECT_CHECKPOINT.json` 的当前状态、最新日志索引/hash 与未发布边界。
 - 下一步：精确审阅 MCU 阶段差异与来源说明，按限定路径进行阶段提交/推送并独立记录完整 SHA 与远端核对；随后物化和验证 FPGA native 工程、Vivado 2018.3 构建及 XSDK，并继续隔离的 Zynq PS LVGL 工作。当前不提前标记上述发布或 FPGA 工作成功。
+
+### W-20260911-118：MCU 阶段提交与远端核对完成，FPGA 双 native 工程物化和实际打开检查通过
+
+- 时间：2026-09-11T11:41:32+08:00（阶段汇总追加时间；首次 FPGA 物化失败发生于当日 06:36）。
+- 发布前来源/换行门禁：主代理发现 Git 换行规范可能改变 vendor blob 字节，新增 `.gitattributes` 对固定 LVGL 1136 文件、Generic_DSP 27 文件及 SPI 3 文件关闭 text 转换。首次普通 re-add 后索引仍保留旧 blob，`verify_lvgl_upstream.py` 新增的 `--index` 模式真实检出 glTF header 字节不一致；定向 `git add --renormalize` 后，工作树 source 1136 文件与 staged 1136 文件两次上游 SHA/字节比对均为零差异，exit 0。该失败与修复保留，不把首次普通 re-add 写成通过。
+- 差异检查边界：生成的 RTE 文件尾随空格通过明确的生成文件 `-whitespace` 属性隔离；手写文件的 diff 检查全部通过，不以全局关闭空白检查隐藏手写代码问题。MCU 文档补充正式四目标证据和 CubeMX 后 SPI 依赖恢复规则，新上游验证脚本随 MCU 阶段纳入提交。
+- 精确暂存范围：共 1197 个文件，仅限 `mcu/`、`.gitattributes`、`THIRD_PARTY_NOTICES.md`、`docs/PROJECT_WORKLOG.md`、`docs/PROJECT_CHECKPOINT.json`、`tools/resume_context.ps1`；未纳入脏 FPGA、根 `README.md`、`.gitignore` 或旧 PDF 删除，相关未提交工作原样保留。记录员在精确暂存/提交期间按主代理要求暂停写日志与检查点。
+- Git 身份失败与恢复：首次 commit 因缺少 identity 失败；主代理只读检查最近五个提交，确认作者均为 hry 且 email 一致，随后仅用本条 Git 命令的 `-c user.name`/`-c user.email` 复用既有身份。没有修改系统或全局 Git identity，也没有把首次失败记录为提交成功。
+- SSH/远端失败与恢复：Git 默认 SSH 的 host-key 校验失败；仅在该命令指定 Windows OpenSSH，并保持 `BatchMode=yes`、`StrictHostKeyChecking=yes` 后 `ls-remote` 成功，提交前远端 main 为 `5d5cf9cf5b3fecfc2c5ec90b85acc8e25fb08e26`，与本地一致。另一次试图用 HTTPS 的命令级 origin 覆盖仍失败，不能记为 HTTPS 成功。没有绕过 host-key 检查、修改 known_hosts、SSH 配置或保存的 remote。
+- 提交与发布证据：成功创建 `e4af1fe28314aa70c086889634c448c7b6026294`，提交信息为 `feat(mcu): integrate isolated LVGL 9.5 and generic DSP targets`。push 会话 72862 最终 exit 0；随后在同一严格 Windows OpenSSH 条件下 `ls-remote` 返回远端 main 为该完整 SHA，确认本地与远端同步。该提交包含 W-117 及当时检查点；本条 W-118 与随后检查点更新发生于发布之后，尚未进入该提交。
+- FPGA 首次物化失败：执行 `fpga/vivado/materialize_native_projects.tcl` 前，先把已有 selftest `.xpr` 精确备份为 `fpga/build/pre_materialize_20260911/audio_dsp_bx71_selftest.xpr`。首次日志 `fpga/build/native_materialize_20260911.log` 显示 selftest 创建后报 `Common 17-163 Missing value for option name`，并提示 `save_project_as -help`；原因是 Vivado 2018.3 不支持该无参数 `save_project` 调用，此时 soc_i2s 尚未创建。
+- FPGA 物化恢复：去除无参数 `save_project`，使用工程自动持久化并 `close_project` 后，重试会话 8977 exit 0，生成 selftest 与 soc_i2s 两个正式 native `.xpr`；工程根使用可迁移的 `$PPRDIR`。物化期间存在三个 BD 41-927 时钟域提示和 generated XDC overwrite warning，因此不能报告零 warning。
+- 实际打开/校验：selftest 的 native 检查 exit 0，files=14。soc_i2s 首次检查会话 37621 exit 1，报 BD 5-104，校验脚本缺少在 validate 前 `open_bd_design` 的步骤，不是 RTL 构建失败；补齐后会话 50555 exit 0，files=89，实际打开 BD 并执行 validate，未发现缺失或工程范围外文件。两工程 part 均为 `xc7z020clg400-2`，top 分别为 `aud_bx71_selftest_top` 与 `audio_soc_wrapper`。
+- 自动续跑维护：主代理通过 `automation_update` 修复续跑任务 name/prompt 乱码为中文，保留原 06:30 日程、原目标任务和无变化时静默的通知意图；未以乱码恢复为由改变调度目标或扩大工作范围。
+- 当前边界：MCU 阶段已提交并推送；FPGA native 文件物化与打开/BD validate 已通过，但两个 Vivado all 流程仍在运行，尚未取得最终综合/实现/bitstream 结果。FPGA 这批改动未随 MCU 发布，XSDK 和隔离 PS LVGL 仍未完成。未进行显示、触摸、音频、BX71 或任何真实硬件验证；MPU/VM/Gitee 工作仍停止。
+- 下一步：先恢复/等待两个正在运行的 Vivado all 流程，分别记录 XSim、综合/实现、时序、DRC、bitstream 与硬件导出最终结果及全部失败/警告；再执行 XSDK/OCM 段门禁并完成隔离 PS LVGL。记录员只同步本条对应检查点，不编辑源码、不构建、不暂存或发布任何文件。
+
+### W-20260912-119：双 FPGA all 流程落盘完成证据与时序、资源、DRC 警告核验
+
+- 时间：2026-09-12T05:02:31+08:00（恢复后汇总追加时间；两个 FPGA 流程实际完成于 2026-09-11）。
+- 恢复与记录状态：主代理完整读到 W-118 后只读核对落盘日志和产物；记录员核对物理末尾仍为 W-118，检查点仍停留 W-117，说明上次中断前尚未同步检查点。本条只追加后续证据并随后同步最新检查点，不移动、改写或重做既有日志记录的动作。
+- 完成证据及退出码边界：两个 Vivado 2018.3 all 流程均有完整落盘日志，末尾包含 `exit 0` 命令及正常 `Exiting`，并有本轮报告/产物；早期 exec 会话跨日后已无法恢复，因此没有重新取得会话最终退出码，不能伪称已回收 process exit code 0。以下结论来自完整流程日志、报告与实际文件的联合核验，不是仅凭文件名。
+- Selftest profile：2026-09-11 11:41:52 完成；WNS=2.038 ns、WHS=0.130 ns，LUT=1280、FF=512、RAMB36=24、DSP48=22、RAM64M=0；bitstream 大小为 4045681 bytes。
+- Soc_i2s profile：2026-09-11 11:43:53 完成；WNS=38.658 ns、WHS=0.121 ns，LUT=1759、FF=1281、RAMB36=24、DSP48=22、RAM64M=0；bitstream 为 4045677 bytes，硬件导出 HDF 为 19805 bytes。
+- XSim 与新鲜度：两者均取得实际 `FPGA_XSIM_OK`；日志、时序/资源/DRC 报告和产物的实读时间戳均对应 2026-09-11 本轮运行，而不是 2026-08-24 旧产物，不能混用历史 build 证据。
+- DRC 明细与警告边界：两个 profile 均为 Error=0、Critical=0，但各有 49 个 warnings，不是 clean/零警告构建。共同项为 DPIP-1=18、DPOP-1=15、DPOP-2=15；Selftest 另有 ZPS7-1（PS7 block required）=1，PL-only profile 的实际启动路径仍须关注；Soc_i2s 另有 IOSR-1（IOB reset sharing）=1。不得把这些 warning 合并成“DRC=0”或忽略其后续板级影响。
+- XSDK 当前动作：主代理已使用本轮新 HDF 启动 `fpga/build_software.ps1`，会话 75936；启动前 `fpga/build/xsdk` 不存在，只会生成新的 workspace。截至本条尚未收到最终结果，不证明 XSDK 工程、ELF、OCM LOAD 范围或软件运行通过。
+- Git/范围/硬件边界：MCU 发布仍为 W-118 已核对的 `e4af1fe28314aa70c086889634c448c7b6026294`；FPGA 这批源码/native 工程及结果尚未发布，隔离 PS LVGL 未完成。未进行 BX71 编程、PS 启动、I/O 电压、Codec、显示/触摸、模拟音频或任何真实硬件验证；MPU/VM/Gitee 继续停止。记录员只追加日志和同步检查点，不编辑源码、不构建、不暂存或推送。
+- 下一步：先取得并审计会话 75936 的 XSDK 完整结果、fresh ELF 和实际 OCM LOAD 段；失败如实记录后修复。随后继续隔离 PS LVGL、FPGA 发布前审阅与精确阶段提交，保留本条全部 warning 和硬件未验证边界。
+
+### W-20260913-120：XSDK 首次失败保留、构建链修复与新鲜 OCM ELF 门禁通过
+
+- 时间：2026-09-13T08:02:40+08:00（恢复后补记；XSDK 实际执行于 2026-09-12）。
+- 恢复与记录范围：记录员按主代理回传的已核验事实补录，先核对工作记录物理末尾为 W-20260912-119、检查点也停留 W-119；本次仅追加本日志及同步检查点，不编辑源码、不构建、不进行 Git 操作。
+- 首次失败：`fpga/build_software.ps1` 会话 75936 最终 PowerShell exit 1。XSDK `createapp` 只生成 BSP Makefile，没有生成 application 的 `Debug/makefile`；XSCT 本身虽 exit 0，但未产生要求的 success marker，外层因此正确拒绝通过，不能把 XSCT 单独退出码当作软件构建成功。
+- 构建链修改：主代理修改 `build_xsdk.tcl`，先将所有 linker 映射到 low OCM，创建 Debug 并复制 `Xilinx.spec`，实际构建 BSP；再用 `projects -build -type app -name wm8960_demo` 触发 CDT 生成 app makefile，随后执行 direct make 和 readelf 门禁。`build_software.ps1` 在本次命令环境的 PATH 中补入 SDK gcc 目录，将完整输出保存为 `fpga/build/xsdk_build.log`，并在 finally 中恢复环境。未借此启用或改动未核实的 DDR 硬件配置。
+- 重试与完成证据：会话 73757 最终真实 exit 0，出现 `FPGA_XSDK_BUILD_OK`。生成 ELF 大小为 284932 bytes，实际文件时间为 2026-09-12 05:04:05；readelf 显示 entry=0，仅一个 LOAD 段，虚拟与物理地址范围均从 0 到尾端 `0xD840`，全部低于 `0x30000`。size 摘要为 text=30808、data=1160、bss=22576。本次取得最终 process exit 0，不沿用 W-119 无法回收 exec 退出码的证据替代方式。
+- 警告及中间报错保留：有 `Hsi 61-9`（忽略 empty_application MSS）提示；首次 CDT 预 clean 在 makefile 尚未生成时出现 `No rule ... clean`，随后实际 compile/link/direct make 成功。结果是最终构建和 ELF 门禁通过，不是全流程零报错或零警告，不能删除或淡化此前失败记录。
+- SHA-256 固定证据：selftest bit=`B9C9D5FA2E28430338AFD310FA1976A3E26CE05EEE09684EF9D5A99B0FB1C76A`；soc_i2s bit=`E9B6D6B1277082E5D648B27D39C6D4E31C7A15F9F26D001D73C68837658AD9B1`；HDF=`46FFD238DF176E23A4A4C2B2B661BD336E77053B0111081A1DCB0410BC50E03C`；ELF=`546E49095D270A8CB11D333E3D6D2DD71F12543907D0D61DE79EF5A83E1BFFF5`。这些 hash 对应本次已核验产物，不证明设备运行。
+- 当前状态与验证边界：FPGA XSDK 软件编译/链接和 OCM LOAD 范围门禁已通过；未运行 main，没有向硬件下载或编程。FPGA 这批工作仍未发布，隔离 Zynq PS LVGL 尚未完成，两个 Vivado profile 各 49 个 DRC warnings 的 W-119 边界继续保留。MCU 显示/触摸/音频、BX71、PS 启动、Codec、I/O 电压及全部物理验证均未做；MPU、VM、Gitee 继续停止。
+- 下一步：主代理开始隔离的 Zynq PS LVGL 最小 OCM 软件移植；不改 MCU，也不改未核实的 DDR 硬件配置。待收到实际构建、来源/配置隔离及 OCM 容量门禁结果后再追加，当前不预测移植、软件运行、FPGA 发布或硬件验证成功。
+
+### W-20260919-121：迟到汇总 PS LVGL 历史试验、FPGA audio-only 范围收束与后续验证证据
+
+- 时间：2026-09-19T19:37:22+08:00（本条恢复记录开始时间；以下构建、迁移检查和范围调整实际发生于 2026-09-13 至 2026-09-14，2026-09-19 为主代理重新核实及迟到汇总日期，不改写实际执行日期）。
+- 恢复与记录范围：主代理已完整读取历史基线至 W-20260913-120；本记录员核对物理末尾 30 行、完整检查点及原工作记录 SHA-256=`3E3B9B432AE2762789AAEF0573627940FD8D9F31E446560963AE40C34CD1A8D8`，原记录共 1893 行。前记录员 40 中断未写，本条据主代理回传的已核验事实补记，仅追加本日志并同步检查点，不编辑源码、不构建、不暂存、提交或推送。
+- PS LVGL 历史失败与后续日志：2026-09-13 ARM 构建曾因 OCM 溢出 44528 bytes 失败；改用 Thumb 后，`fpga/build/xsdk_lvgl_build.log` 显示 2026-09-13 13:28:17 构建成功。历史 ELF 为 2145984 bytes，SHA-256=`BBFFACAF0495C086A73904D1A080B416BC8B807C9E4BD80F746880920344125E`；size 为 text=121388、data=1148、bss=60880，readelf entry=0，只有一个 LOAD 段，范围为 `0..0x2EDF0`，至 `0x30000` 仅余 4624 bytes。旧会话 48318 的最终退出码未回收，因此这里只确认日志及 ELF 证据，不伪称取得实际 process exit 0，也未运行任何硬件。
+- Native clean relocation：2026-09-13 将仅四个 native 输入（两个 XPR、一个 BD、一个 wrapper）及 `rtl/tb/constraints/vivado` 复制到 `tmp/fpga_native_clean_20260913/fpga` 后进行干净迁移检查；会话 78856 已取得实际 exit 0，`native_clean_soc_20260913.log` 记录 files=89，已重新生成 IP 并完成 BD validate。仍有长路径等 warnings，不是零警告构建，也不等于板级可用或物理验证通过。
+- 用户范围变更：2026-09-14 用户明确“内存紧 FPGA 不用 LVGL，DSP 做好”。主代理据此使用 `apply_patch` 移除五个未发布的 `lvgl_ps` 文件（README、main、lv_conf、port h/c）以及 `build_software.ps1` 的 LVGL 选项；`build_xsdk.tcl` 不再导入 MCU vendor，当前 FPGA 软件只支持 audio。旧 ignored workspace、日志和 ELF 保留作为历史试验证据，不再作为当前 FPGA 交付功能。MCU LVGL 保持，不因本次 FPGA 收束而移除或重做。
+- MCU 外部 SDRAM 用户延期：用户随后提出 MCU LVGL 使用外部 SDRAM；当前 IOC 没有 FMC IP，且缺少 SDRAM 型号、引脚及板级资料。主代理询问资料后，用户明确“那你先忽略这个吧，后续再补”。因此外部 SDRAM 为用户主动延期事项，本阶段不继续实施，也不作为当前交付阻塞；不能借此猜测 FMC/SDRAM 配置。
+- Audio-only 软件重构后验证：2026-09-14 `build_software.ps1` 会话 31694 已由主代理通过 `write_stdin` 回收实际 exit 0，构建时间 10:49:38。ELF 为 284932 bytes，SHA-256=`546E49095D270A8CB11D333E3D6D2DD71F12543907D0D61DE79EF5A83E1BFFF5`，与 W-120 音频 ELF 一致；entry=0，单一 LOAD 范围 `0..0xD840`，app 只有 `main.o` 和 `wm8960.o`，没有 LVGL。`Hsi 61-9` 和初始 pre-clean 诊断仍保留，不能宣称整个流程零报错/零警告。未执行 main 或 PS 启动。
+- DSP 回归覆盖扩充：2026-09-14 testbench 增加 delay wrap、reset-history、zero-to-one delay、feedback=0.5、dry bypass、CDC frame-boundary、AXI strobes/invalid writes 及 watchdog 用例。`dsp_final_sim_20260914.log` 在 10:51:45 记录 `FPGA_RTL_TESTS_OK`（4720 ns）和 `FPGA_XSIM_OK`；原会话 45707 的最终退出码尚未回收，因此当前是仿真日志通过证据，不声称已取得该会话最终 exit 0。本次范围为 testbench、build scope 和 README（恢复 DSP 调用寄存器合同），未改 RTL 功能。
+- 2026-09-19 再核实及发布状态：主代理重新核对上述日志、音频 ELF hash 和 Git HEAD；HEAD 仍为 `e4af1fe28314aa70c086889634c448c7b6026294`，当前 FPGA 阶段尚未提交发布。本条未重新核验远端 SHA；W-118 的 MCU 发布证据保留为历史，不伪称本次完成远端发布或检查。
+- 持续保留的验证边界：MCU 四目标验证及发布分别沿用 W-117/W-118；Vivado 两个 profile 的 W-119 结果及各 49 个 DRC warnings 完整保留。所有 MCU 显示、触摸、音频以及 BX71、PS 启动、Codec、I/O 电压、下载/编程和其他硬件/物理验证均未做；静态检查、构建、仿真、ELF 和 bitstream 不能替代这些验收。MPU、VM、Gitee 继续停止。
+- 当前下一步：主代理先完成最终仿真和 native 输入检查，审阅精确 FPGA 阶段范围后提交发布并记录真实 commit/push/remote SHA 证据；随后重点完善 MCU DSP 的易调用、易移植接口。当前不再开发 FPGA LVGL，不实施用户延期的外部 SDRAM。记录员同步本条检查点后停止写入，等待主代理发布及后续实际证据。

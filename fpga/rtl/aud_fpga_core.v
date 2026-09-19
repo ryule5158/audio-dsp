@@ -1,6 +1,8 @@
 `timescale 1ns/1ps
 
-// One-sample-per-clock-capable stereo DSP core. Samples and gains are Q1.23.
+// Sample-enable stereo DSP core. Samples and gains are Q1.23.  The longest
+// feedback path is intentionally unpipelined; constrain it to the actual
+// sample-enable interval when clk is substantially faster than the sample rate.
 module aud_fpga_core (
     input  wire                     clk,
     input  wire                     reset_n,

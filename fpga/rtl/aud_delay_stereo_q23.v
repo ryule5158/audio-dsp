@@ -45,7 +45,12 @@ module aud_delay_stereo_q23 #(
         ? memory_read_left : 24'sd0;
     wire signed [23:0] wet_right = read_has_history
         ? memory_read_right : 24'sd0;
-    wire memory_write_enable = reset_n && (state == STATE_MIX);
+    // State is synchronously forced to IDLE by reset, so reset_n need not feed
+    // a BRAM enable pin directly.  Keeping it out of this expression prevents
+    // an async-assert/reset synchronizer from becoming a RAMB36 control input
+    // (Vivado DRC REQP-1839); a reset edge may only overwrite already-invalid
+    // delay history, which is discarded by written_samples.
+    wire memory_write_enable = (state == STATE_MIX);
     wire signed [23:0] memory_write_left = aud_add_sat(
         dry_left, aud_mul_q23(wet_left, feedback_q23));
     wire signed [23:0] memory_write_right = aud_add_sat(

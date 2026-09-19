@@ -5,7 +5,8 @@
 // External I2S pin locations remain board-specific.
 module aud_bx71_top (
     input  wire             pl_clk_50m,
-    input  wire             reset_n,
+    input  wire             control_reset_n,
+    input  wire             audio_reset_n,
     input  wire             i2s_bclk,
     input  wire             i2s_lrclk,
     input  wire             i2s_adc_data,
@@ -38,7 +39,7 @@ module aud_bx71_top (
     wire control_update_toggle;
 
     aud_axi_lite_regs registers (
-        .clk(pl_clk_50m), .reset_n(reset_n),
+        .clk(pl_clk_50m), .reset_n(control_reset_n),
         .s_axi_awaddr(s_axi_awaddr), .s_axi_awvalid(s_axi_awvalid),
         .s_axi_awready(s_axi_awready), .s_axi_wdata(s_axi_wdata),
         .s_axi_wstrb(s_axi_wstrb), .s_axi_wvalid(s_axi_wvalid),
@@ -52,7 +53,7 @@ module aud_bx71_top (
         .update_toggle(control_update_toggle));
 
     always @(posedge i2s_bclk) begin
-        if (!reset_n) begin
+        if (!audio_reset_n) begin
             lrclk_previous <= 1'b0;
             frame_boundary <= 1'b0;
         end else begin
@@ -62,7 +63,7 @@ module aud_bx71_top (
     end
 
     aud_param_cdc #(.WIDTH(176)) parameter_crossing (
-        .audio_clk(i2s_bclk), .audio_reset_n(reset_n),
+        .audio_clk(i2s_bclk), .audio_reset_n(audio_reset_n),
         .frame_boundary(frame_boundary),
         .param_bus_async(control_param_bus),
         .update_toggle_async(control_update_toggle),
@@ -70,7 +71,7 @@ module aud_bx71_top (
         .ack_toggle_audio(ack_toggle_audio));
 
     always @(posedge pl_clk_50m) begin
-        if (!reset_n) begin
+        if (!control_reset_n) begin
             ack_sync_1 <= 1'b0;
             ack_sync_2 <= 1'b0;
         end else begin
@@ -80,7 +81,7 @@ module aud_bx71_top (
     end
 
     aud_i2s_effects_top effects (
-        .reset_n(reset_n), .i2s_bclk(i2s_bclk), .i2s_lrclk(i2s_lrclk),
+        .reset_n(audio_reset_n), .i2s_bclk(i2s_bclk), .i2s_lrclk(i2s_lrclk),
         .i2s_adc_data(i2s_adc_data), .i2s_dac_data(i2s_dac_data),
         .gain_q23(audio_param_bus[25:0]),
         .dc_r_q23(audio_param_bus[49:26]),
