@@ -13,6 +13,10 @@
 - 根目录 DSP 源文件组：Keil 工程中的 `Library/DSP permissive`（49 个 `.c`，
   与 `mpu/cmake/portable_sources.cmake` 同一份许可白名单）。
 
+需要把 DSP 接进自己的应用时，先看 [调用与移植速查](QUICKSTART.md)：
+包含三层 API 选择、可编译的双声道效果链示例，以及采样率、PCM 格式、
+参数更新与 DMA 内存的移植边界。
+
 ## 固定硬件合同
 
 本模板规定的参考硬件是 **STM32H743IIT6（LQFP176）+ 外接 WM8960

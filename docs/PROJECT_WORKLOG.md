@@ -1905,3 +1905,28 @@ sed -n '1,$p' docs/PROJECT_WORKLOG.md
 - 2026-09-19 再核实及发布状态：主代理重新核对上述日志、音频 ELF hash 和 Git HEAD；HEAD 仍为 `e4af1fe28314aa70c086889634c448c7b6026294`，当前 FPGA 阶段尚未提交发布。本条未重新核验远端 SHA；W-118 的 MCU 发布证据保留为历史，不伪称本次完成远端发布或检查。
 - 持续保留的验证边界：MCU 四目标验证及发布分别沿用 W-117/W-118；Vivado 两个 profile 的 W-119 结果及各 49 个 DRC warnings 完整保留。所有 MCU 显示、触摸、音频以及 BX71、PS 启动、Codec、I/O 电压、下载/编程和其他硬件/物理验证均未做；静态检查、构建、仿真、ELF 和 bitstream 不能替代这些验收。MPU、VM、Gitee 继续停止。
 - 当前下一步：主代理先完成最终仿真和 native 输入检查，审阅精确 FPGA 阶段范围后提交发布并记录真实 commit/push/remote SHA 证据；随后重点完善 MCU DSP 的易调用、易移植接口。当前不再开发 FPGA LVGL，不实施用户延期的外部 SDRAM。记录员同步本条检查点后停止写入，等待主代理发布及后续实际证据。
+
+### W-20260920-122：补录最终 DSP 仿真与双 native 检查，确认 FPGA audio-only 阶段提交和远端发布
+
+- 时间：2026-09-20T00:49:01+08:00（本条恢复记录核验时间）。最终仿真及 native 输入检查实际发生于 2026-09-19，以下按实际日期补录；提交、推送及远端核验发生于 2026-09-20，不将它们倒填为 9 月 19 日。
+- 恢复与记录范围：主代理已完整读取历史至 W-121；前记录员 41 中断前仅完成 W-121。本记录员核对物理末尾 20 行、完整检查点和原日志，共 1907 行，SHA-256=`64A72026F352A4F257DAF3D78B5676E50D216CD7F5CFF3C0921173ED1A55030F`。本条据主代理回传的已核验事实追加，仅改本日志和检查点，不构建、不改源码、不执行 Git 写操作。
+- 最终 DSP 仿真：2026-09-19 selftest 会话 31238 已取得真实 process exit 0。`fpga/build/dsp_final_sim_20260919.log` 于 19:38:00 记录 `FPGA_RTL_TESTS_OK`（4720 ns）及 `FPGA_XSIM_OK`；这是本轮重新运行并回收退出码的证据，不替换或伪造 W-121 中旧会话 45707 未回收退出码的历史记录。
+- 双 native 干净输入检查：新目录 `tmp/fpga_release_20260919` 仅放入四个 native 输入（两个 XPR、一个 BD、一个 wrapper）及所需源文件和 scripts，不携带 IP cache。双项目检查会话 79997 真实 exit 0，于 2026-09-19 19:39:08 完成；日志为 `fpga/build/native_release_selftest_20260919.log` 和 `fpga/build/native_release_soc_i2s_20260919.log`。selftest 为 14 files、soc_i2s 为 89 files，完成 BD validate 和 IP regenerate，没有缺失文件或外部文件。这是 native 工程可迁移及输入完整性检查，不是新一轮 place-and-route，也不是板测。
+- Native warnings 完整保留：两项目各有 `filemgmt 56-2` 1 条；soc_i2s 另有 `IP_Flow 19-3153` 2 条、`BD 41-927` 3 条、`IP_Flow 19-4994` 1 条，以及 `Vivado 12-4154`、`Vivado 12-4152` 各 1 条。结果不是零警告；W-119 两个 profile 各 49 个 DRC warnings 及其影响边界仍不变。
+- 静态与 audio-only 范围门禁：三个 FPGA PowerShell 脚本 parser 检查均为 0 errors，`git diff --check` 通过（exit 0）。`-Profile lvgl` 被参数验证拒绝，audio ELF 未变化；readelf entry=0，仅一段 LOAD，范围 `0..0xD840`，app 对象只有 `main.o`、`wm8960.o`。本轮 selftest bit、soc_i2s bit、HDF 和 audio ELF 的 SHA-256 均与 W-120 固定证据相同，不代表再次执行了 P&R、main、PS 启动或硬件验证。
+- 只读诊断失败与纠正：一次 `rg` Windows glob 查询得到 OS error 123，随后改为目录加 `-g` 的查询方式，复核当前 FPGA 范围没有机器绝对路径、LVGL 或 MCU 引用。尝试读取不存在的 `mcu/App/Inc/audio_effects.h`、`tests` 目录和根目录 `CMakeLists` 仅产生只读失败，没有更改工程；后续查找应先取得 `rg --files` 文件清单，不据猜测路径下结论。
+- 实际提交与远端发布：2026-09-20 提交 `a0d721feff312796d67bb8db7574ec1be6a35c9e`，message 为 `feat(fpga): finalize BX71 DSP native projects and audio-only XSDK`，共 38 files，仅含 FPGA 36 files 和文档 2 files，文档截至 W-121。`git push` 及其后的 `ls-remote` 在同一命令会话 72248 中最终真实 exit 0，远端 `main` 确认为同一完整 SHA。本次只使用 per-command 身份 `hry` / `heyu51582022@163.com` 和 Windows SSH 的 `BatchMode=yes`、`StrictHostKeyChecking=yes`，未改 Git/SSH 配置，也未绕过 host-key 检查。
+- 精确发布范围与可恢复删除：原根目录 README、`.gitignore`、历史 PDF 及 `docs/PLATFORM_ARCHITECTURE` 的旧 dirty 更改，以及 MCU CMSIS Source 旧 untracked 内容均保留且未发布。三份 legacy FPGA 文件已由新的 XDC、flow 和 baremetal 头文件取代，其删除已在本次范围审阅后包含于提交，可从 Git 历史恢复。FPGA README 包含 DSP 调用格式、寄存器、ready 和 CDC 合同。
+- 当前交付边界：FPGA source/build/native/software 阶段已经发布，但不构成物理验收。全部 MCU 显示、触摸、音频以及 BX71、PS 启动、Codec、I/O 电压、下载/编程和其他硬件/物理验证仍未进行；MCU 四目标构建与发布继续沿用 W-117/W-118，不冒称本轮重做。PS LVGL 已由用户撤销，MCU 外部 SDRAM 已由用户延期，均不作为当前阻塞；MPU、VM、Gitee 继续停止。
+- 发布后文档与下一步：本 W-122 及本次检查点更新发生于上述发布之后，尚待主代理另行提交发布，不包含在 `a0d721feff312796d67bb8db7574ec1be6a35c9e` 内。阶段重点转向 MCU DSP 易调用、易移植接口；不得据此重启 PS LVGL、外部 SDRAM或已停止范围。记录员同步本条检查点后停止写入，由主代理进行单独文档提交及后续实际工作。
+
+### W-20260920-123：MCU 四目标复编译与快速调用文档示例验证，等待精确四文件发布
+
+- 时间：2026-09-20T00:52:34+08:00（本条恢复记录核验时间）。主代理在 W-122 完成后继续授权本次补充；记录员已验证 W-122 检查点与日志一致，前 1907 行字节级 SHA-256 仍为 `64A72026F352A4F257DAF3D78B5676E50D216CD7F5CFF3C0921173ED1A55030F`，历史未改写。本条仍仅追加日志并同步检查点，不构建、不改源码、不执行 Git 写操作。
+- W-122 检索范围澄清：其中“无机器绝对路径、LVGL 或 MCU 引用”的复核范围仅为 native XPR/BD 与当前 active build software，不包含 README 对范围调整的说明或保留的历史日志；不能外推为整个 FPGA 目录或历史证据从未出现这些内容。
+- MCU 四目标真实复编译：2026-09-20 `build_keil.ps1 -Target All` 会话 85937 经主代理 `write_stdin` 回收实际 exit 0，完整日志为 `mcu/build/final_four_target_20260920.log`。四目标均为 0 Error / 0 Warning；SelfTest 7 秒，Code/RO/RW/ZI 为 25408/1128/2068/41012 bytes；WM8960_Stream 5 秒，为 32608/1128/2068/41540 bytes；Generic_DSP 11 秒，为 32328/1876/2068/41012 bytes；LVGL_UI 36 秒，为 204724/16512/2084/163580 bytes。
+- 源与对象隔离及内存门禁：每目标保留 49 个 portable DSP 对象，仅 Generic_DSP 含 14 个专属 analysis 对象，仅 LVGL_UI 映射 466 个 LVGL 源/对象相关路径，其他三目标 LVGL 为 0；四目标 D2 SRAM map 门禁全部通过。原三处文件级 warning 选项策略仍保留，没有用全局 warning suppression 换取结果。本次仅 build，没有重新运行 CubeMX 生成、重新下载上游源码，也没有任何硬件测试；W-117 的生成/上游核验与 W-118 的 MCU 发布仍是各自独立历史证据。
+- MCU 快速调用文档：主代理新增 `mcu/QUICKSTART.md`，并在 `mcu/README.md` 增加入口。内容从实际 `audio_dsp.h`、`audio_dsp.c` 和 `board_config.h` 读取，说明三层调用、固定 48 kHz 采样率、frames 与低 24-bit PCM、持久 delay buffer、同一处理上下文更新参数、DMA 内存约束，以及禁止在 ISR 内调用 LVGL。此文档不宣称采样率可配置或可以自动移植；后续仍需实际接口评估。
+- 文档 C 示例语法与对象编译：主代理从 Markdown 提取完整 C 代码块，使用 ArmClang 6.24、Cortex-M7 硬浮点配置和 `-std=c11 -Wall -Wextra -Werror -fsyntax-only` 检查，实际 exit 0，标记为 `MCU_QUICKSTART_ARMCLANG_SYNTAX_OK`。随后同一代码块又实际执行 `ArmClang -c`，exit 0，标记为 `MCU_QUICKSTART_OBJECT_OK`；产物 `mcu/build/quickstart_example.o` 为 2072 bytes，时间 2026-09-20 00:51:49。前者证明语法/类型检查，后者证明该示例可以编译成对象；本轮未链接或运行示例，不把它们称为链接、设备或运行行为验收。
+- 修改范围与未发布状态：主代理 Git diff 核验 MCU tracked 更改仅 `mcu/README.md`，另新增 `mcu/QUICKSTART.md`；MCU source、Keil 和 CubeMX 配置没有修改。W-122、W-123 与当前检查点都尚未发布，不包含在 FPGA 提交 `a0d721feff312796d67bb8db7574ec1be6a35c9e` 中。主代理计划只暂存并发布 `docs/PROJECT_WORKLOG.md`、`docs/PROJECT_CHECKPOINT.json`、`mcu/README.md`、`mcu/QUICKSTART.md` 四文件；记录员不预报该后续提交或推送已经成功。
+- 下一步与范围边界：先完成上述四文件文档/记录发布，保持 FPGA 已发布基线，随后评估 MCU 实际易调用、易移植接口，明确当前 48 kHz 固定而非可配置。MCU 外部 SDRAM 继续用户延期，FPGA PS LVGL 继续用户撤销；不扩大硬件范围，MPU、VM、Gitee 保持停止。所有硬件仍未验证，W-119 两 FPGA profile 各 49 个 DRC warnings 保留。记录员同步 W-123 检查点后停止写入，等待主代理后续实际证据。

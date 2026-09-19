@@ -1,6 +1,6 @@
 {
   "schema": "audio-dsp-resume-checkpoint/v1",
-  "generated_at": "2026-09-19T19:37:22+08:00",
+  "generated_at": "2026-09-20T00:52:34+08:00",
   "repository": "AUDIO_DSP",
   "scope": {
     "active": [
@@ -26,27 +26,36 @@
   "worklog": {
     "path": "docs/PROJECT_WORKLOG.md",
     "append_only": true,
-    "last_entry": "W-20260919-121",
-    "line_count": 1907,
-    "max_sequence": 121,
-    "sha256": "64A72026F352A4F257DAF3D78B5676E50D216CD7F5CFF3C0921173ED1A55030F"
+    "last_entry": "W-20260920-123",
+    "line_count": 1932,
+    "max_sequence": 123,
+    "sha256": "7E519F838DA94476CBD240CDDC3303600064C8FEFA724F7F85744C20C081E790"
   },
   "git": {
     "branch": "main",
-    "head": "e4af1fe28314aa70c086889634c448c7b6026294",
+    "head": "a0d721feff312796d67bb8db7574ec1be6a35c9e",
     "origin": "git@github.com:ryule5158/audio-dsp.git",
-    "origin_main_at_snapshot": "e4af1fe28314aa70c086889634c448c7b6026294",
-    "origin_main_evidence_entry": "W-20260911-118",
-    "remote_checked_this_update": false,
+    "origin_main_at_snapshot": "a0d721feff312796d67bb8db7574ec1be6a35c9e",
+    "origin_main_evidence_entry": "W-20260920-122",
+    "remote_checked_this_update": true,
     "mcu_phase_published": true,
-    "latest_published_worklog_entry": "W-20260911-117",
+    "fpga_phase_published": true,
+    "latest_published_worklog_entry": "W-20260919-121",
+    "post_publication_documentation_entry": "W-20260920-123",
+    "post_publication_documentation_status": "W122_W123_this_checkpoint_and_MCU_quickstart_docs_are_not_in_a0d721feff312796d67bb8db7574ec1be6a35c9e_pending_separate_four_file_documentation_commit",
+    "planned_documentation_publication_paths": [
+      "docs/PROJECT_WORKLOG.md",
+      "docs/PROJECT_CHECKPOINT.json",
+      "mcu/README.md",
+      "mcu/QUICKSTART.md"
+    ],
     "newer_worklog_and_checkpoint_changes_uncommitted": true,
     "worktree_expected_dirty": true
   },
   "stage": {
-    "name": "fpga_audio_only_final_validation_and_publication",
-    "status": "audio_only_xsdk_actual_exit0_native_relocation_passed_extended_simulation_log_passed_fpga_unpublished",
-    "next_action": "Complete final DSP simulation and native-input checks, review and publish only the exact FPGA phase with actual commit/push/remote SHA evidence, then focus on easy-to-call and portable MCU DSP interfaces. FPGA LVGL is removed from the current scope by the user; do not resume it. External SDRAM for MCU LVGL is explicitly user-deferred pending board/model/pin/FMC data and is not a current blocker. Preserve MCU LVGL, all warnings and untested hardware boundaries. The recorder stops writing after W121 until the main agent supplies publication or further actual evidence. Read any later worklog entries before acting.",
+    "name": "mcu_dsp_easy_call_and_portability_after_fpga_publication",
+    "status": "fpga_phase_published_a0d721f_mcu_four_target_rebuild_actual_exit0_quickstart_syntax_and_object_compilation_passed_no_example_link_or_run_four_file_docs_pending",
+    "next_action": "This snapshot predates any subsequent documentation commit. On resume, first inspect git log/status; if W122/W123 and the quickstart documentation have already been committed and their four paths are clean, do not publish them again and proceed directly to MCU interface assessment. Otherwise the main agent should publish only docs/PROJECT_WORKLOG.md, docs/PROJECT_CHECKPOINT.json, mcu/README.md and mcu/QUICKSTART.md, then evaluate actual MCU DSP easy-call and portability interfaces while keeping the FPGA published baseline unchanged. W123's four-target build returned actual exit 0 and the quickstart C example passed syntax/type checks and object compilation, but the example was not linked or run and the current sample rate is fixed at 48 kHz, not configurable. At this snapshot, verified FPGA publication a0d721feff312796d67bb8db7574ec1be6a35c9e includes documentation only through W121; W122, W123, this checkpoint and the new MCU quickstart documentation are still unpublished. Do not infer a future documentation commit SHA or create repeated commits merely to record the checkpoint's own publication. FPGA LVGL is removed from scope by the user and MCU external SDRAM is user-deferred pending board/model/pin/FMC data, not a blocker. Preserve MCU LVGL, all warnings, unrelated dirty/untracked work and untested hardware boundaries; do not expand hardware scope or resume MPU/VM/Gitee. The recorder stops writing after W123. Read any later worklog entries before acting.",
     "checkpoint_policy": "This is a recoverable snapshot. Any later append-only worklog entry or commit may make it stale; the recovery script reports that explicitly."
   },
   "verified_evidence": [
@@ -71,20 +80,35 @@
     "W-20260919-121 user-deferred MCU SDRAM: the current IOC has no FMC IP and SDRAM model/pin/board data are missing. After being asked for board data, the user explicitly deferred the work. Do not implement it now or treat it as a current blocker.",
     "W-20260919-121 audio-only rebuild: session 31694 was actually collected by write_stdin with exit 0, completed 2026-09-14 10:49:38. ELF 284932 bytes, SHA256 546E49095D270A8CB11D333E3D6D2DD71F12543907D0D61DE79EF5A83E1BFFF5 matches W120, entry 0 with one LOAD extent 0..0xD840; the app contains only main.o and wm8960.o, no LVGL. Hsi 61-9 and initial pre-clean diagnostics remain; no main or PS startup ran.",
     "W-20260919-121 DSP regression expansion: 2026-09-14 testbench additions cover delay wrap/reset-history/zero-to-one, feedback 0.5, dry bypass, CDC frame boundary, AXI strobes/invalid writes and watchdog. dsp_final_sim_20260914.log records FPGA_RTL_TESTS_OK at 4720 ns and FPGA_XSIM_OK at 10:51:45; session 45707 final exit was not recovered. Changes were testbench, build scope and README register contract, not RTL functionality.",
-    "W-20260919-121 2026-09-19 recheck: the main agent inspected the logs and audio ELF hash again; HEAD remains e4af1fe28314aa70c086889634c448c7b6026294 and the FPGA phase remains unpublished. Remote SHA was not checked for this checkpoint. MCU W117/W118 and each Vivado profile's 49 DRC warnings in W119 remain the applicable historical evidence; all hardware remains untested."
+    "W-20260919-121 2026-09-19 recheck: the main agent inspected the logs and audio ELF hash again; HEAD remains e4af1fe28314aa70c086889634c448c7b6026294 and the FPGA phase remains unpublished. Remote SHA was not checked for this checkpoint. MCU W117/W118 and each Vivado profile's 49 DRC warnings in W119 remain the applicable historical evidence; all hardware remains untested.",
+    "W-20260920-122 records actual 2026-09-19 checks separately from the 2026-09-20 publication. Final selftest simulation session 31238 returned actual process exit 0; fpga/build/dsp_final_sim_20260919.log records FPGA_RTL_TESTS_OK at 4720 ns and FPGA_XSIM_OK at 19:38:00. The unrecovered historical session 45707 remains unchanged as historical evidence.",
+    "W-20260920-122 fresh native input checks: tmp/fpga_release_20260919 contains only four native inputs (two XPRs, one BD, one wrapper) plus source/scripts and no IP cache. Dual-native session 79997 returned actual exit 0 at 2026-09-19 19:39:08; native_release_selftest_20260919.log lists 14 files and native_release_soc_i2s_20260919.log lists 89 files, with BD validation and IP regeneration and no missing/external files. This was not new place-and-route or a board test.",
+    "W-20260920-122 native warnings: each profile has one filemgmt 56-2; soc_i2s additionally has IP_Flow 19-3153 x2, BD 41-927 x3, IP_Flow 19-4994 x1, Vivado 12-4154 x1 and Vivado 12-4152 x1. W119's 49 DRC warnings per profile remain; no zero-warning claim is made.",
+    "W-20260920-122 static/audio-only gates: all three FPGA PowerShell parsers report zero errors and git diff --check exits 0. -Profile lvgl is rejected by parameter validation without changing the audio ELF; entry 0, single LOAD extent 0..0xD840 and only main.o/wm8960.o remain. Both bitstreams, HDF and audio ELF hashes match W120. No new P&R, main/PS startup or hardware run is implied.",
+    "W-20260920-122 read-only diagnostics: one rg Windows glob query failed with OS error 123; a directory plus -g recheck found no machine-absolute paths, LVGL or MCU references in the current FPGA scope. Reads of nonexistent mcu/App/Inc/audio_effects.h, tests and root CMakeLists failed without changing the project. Use rg --files before guessing paths.",
+    "W-20260920-122 actual release: commit a0d721feff312796d67bb8db7574ec1be6a35c9e on 2026-09-20, message feat(fpga): finalize BX71 DSP native projects and audio-only XSDK, contains 38 files (36 FPGA plus two docs through W121). Push and subsequent ls-remote in command session 72248 returned final actual exit 0 and remote main matches the full SHA. Per-command identity hry/heyu51582022@163.com and Windows SSH BatchMode=yes/StrictHostKeyChecking=yes were used without changing configuration or bypassing host-key checks.",
+    "W-20260920-122 publication scope: unrelated root README/.gitignore/historical PDF and docs/PLATFORM_ARCHITECTURE dirty work and MCU CMSIS Source untracked work remain preserved and unpublished. Three legacy FPGA file deletions were reviewed, superseded by new XDC/flow/baremetal header files, and are recoverable from Git. FPGA README documents DSP calling format, registers, ready and CDC contracts. W122 and this checkpoint were written after a0d721f and still require a separate documentation publication; MCU W117/W118 and all untested hardware boundaries remain unchanged.",
+    "W-20260920-123 scope clarification: W122's no machine-absolute path/LVGL/MCU-reference check applies only to native XPR/BD and active build software, not README scope explanations or retained historical logs. It is not a claim about every FPGA file or historical occurrence.",
+    "W-20260920-123 MCU rebuild: build_keil.ps1 -Target All session 85937 was actually collected by write_stdin with exit 0 on 2026-09-20; log mcu/build/final_four_target_20260920.log. All four targets report 0 errors/0 warnings. SelfTest 7s Code/RO/RW/ZI 25408/1128/2068/41012; WM8960_Stream 5s 32608/1128/2068/41540; Generic_DSP 11s 32328/1876/2068/41012; LVGL_UI 36s 204724/16512/2084/163580 bytes.",
+    "W-20260920-123 target contracts: each target includes 49 portable DSP objects, only Generic_DSP includes 14 analysis objects, and only LVGL_UI maps all 466 LVGL source/object-related paths while the other targets have zero. All D2 SRAM map gates passed. The original three file-local warning options remain without global suppression. This was build only, not fresh CubeMX generation, an upstream redownload or hardware validation; W117 generation/upstream checks and W118 MCU release remain distinct historical evidence.",
+    "W-20260920-123 MCU documentation: new mcu/QUICKSTART.md and its README entry were derived from actual audio_dsp.h/.c and board_config.h. They cover three calling layers, fixed 48 kHz sample rate, frames and low-24-bit PCM, persistent delay buffers, parameter changes in the processing context, DMA memory and no LVGL calls in ISR. MCU source, Keil and CubeMX configuration are unchanged; only README is a modified tracked MCU file and QUICKSTART is new. Configurable sample rate or automatic portability is not established.",
+    "W-20260920-123 example verification: the complete Markdown C block passed ArmClang 6.24 Cortex-M7 hard-float -std=c11 -Wall -Wextra -Werror -fsyntax-only with actual exit 0 and MCU_QUICKSTART_ARMCLANG_SYNTAX_OK. The same block then passed ArmClang -c with actual exit 0 and MCU_QUICKSTART_OBJECT_OK, producing mcu/build/quickstart_example.o, 2072 bytes, timestamp 2026-09-20 00:51:49. The example was not linked or run; syntax/type checks and object compilation do not prove runtime or device behavior.",
+    "W-20260920-123 publication boundary: W122, W123, this checkpoint and the new MCU quickstart docs are still unpublished and not in a0d721feff312796d67bb8db7574ec1be6a35c9e. The main agent plans one exact four-file documentation publication covering docs/PROJECT_WORKLOG.md, docs/PROJECT_CHECKPOINT.json, mcu/README.md and mcu/QUICKSTART.md. No later commit/push success is predicted. FPGA remains at its published baseline, MCU SDRAM remains user-deferred, FPGA LVGL remains removed, MPU/VM/Gitee remain stopped, and all hardware remains unverified."
   ],
   "native_project_status": {
     "mcu_formal_regenerate": "passed_four_targets_W117",
-    "mcu_keil_build": "passed_four_targets_zero_errors_zero_warnings_W117",
+    "mcu_keil_build": "rebuild_passed_four_targets_zero_errors_zero_warnings_and_d2_map_contracts_actual_exit0_session85937_20260920_W123_build_only",
     "mcu_lvgl_upstream": "passed_1136_files_zero_mismatches_W117",
     "mcu_release": "e4af1fe28314aa70c086889634c448c7b6026294_pushed_remote_verified_W118",
-    "fpga_selftest_xpr": "materialized_opened_checked_W118",
-    "fpga_soc_i2s_xpr": "materialized_opened_bd_validated_W118",
+    "mcu_quickstart": "README_entry_and_new_QUICKSTART_unpublished_W123_source_keil_cubemx_unchanged_fixed_48k_not_configurable",
+    "mcu_quickstart_example": "armclang6_24_cortex_m7_hardfloat_syntax_type_and_object_compilation_actual_exit0_object2072bytes_20260920_W123_not_linked_or_run",
+    "fpga_selftest_xpr": "fresh_native_inputs_checked_files14_actual_exit0_session79997_20260919_W122",
+    "fpga_soc_i2s_xpr": "fresh_native_inputs_checked_files89_ip_regenerated_bd_validated_actual_exit0_session79997_20260919_W122",
     "fpga_vivado_build": "completed_log_and_artifact_evidence_49_drc_warnings_each_W119",
-    "fpga_native_clean_relocation": "passed_actual_exit0_ip_regeneration_bd_validate_files89_session78856_20260913_W121_warnings_remain",
+    "fpga_native_clean_relocation": "fresh_four_native_inputs_no_ipcache_dual_profiles_actual_exit0_session79997_20260919_W122_no_missing_or_external_files_warnings_remain",
     "fpga_xsdk_build": "audio_only_passed_actual_exit0_and_ocm_elf_gates_session31694_20260914_W121",
-    "fpga_dsp_extended_simulation": "log_markers_passed_4720ns_20260914_W121_session45707_final_exit_not_recovered",
-    "fpga_release": "not_committed_or_pushed",
+    "fpga_dsp_extended_simulation": "final_selftest_passed_4720ns_actual_exit0_session31238_20260919_W122",
+    "fpga_release": "a0d721feff312796d67bb8db7574ec1be6a35c9e_pushed_remote_verified_actual_exit0_session72248_20260920_W122_source_build_native_software_not_physical_acceptance",
     "fpga_software_scope": "audio_only_user_decision_20260914_W121",
     "zynq_ps_lvgl": "removed_from_current_scope_historical_thumb_log_and_elf_only_W121",
     "mcu_external_sdram": "user_deferred_pending_board_data_not_a_current_blocker_W121",
@@ -92,7 +116,8 @@
   },
   "fpga_artifact_sha256": {
     "evidence_entry": "W-20260913-120",
-    "elf_reverified_entry": "W-20260919-121",
+    "elf_reverified_entry": "W-20260920-122",
+    "all_artifacts_reverified_entry": "W-20260920-122",
     "selftest_bit": "B9C9D5FA2E28430338AFD310FA1976A3E26CE05EEE09684EF9D5A99B0FB1C76A",
     "soc_i2s_bit": "E9B6D6B1277082E5D648B27D39C6D4E31C7A15F9F26D001D73C68837658AD9B1",
     "hdf": "46FFD238DF176E23A4A4C2B2B661BD336E77053B0111081A1DCB0410BC50E03C",
@@ -101,17 +126,18 @@
   "open_gates": [
     "Audio-only XSDK rebuild and OCM ELF gates passed with actual exit 0 in W121, but main/PS startup and all hardware behavior remain untested. Preserve the first failed XSDK attempt and intermediate pre-clean error; do not report a zero-error/zero-warning full flow.",
     "Retain all 49 DRC warnings per profile and their impact boundaries, especially selftest ZPS7-1 PS boot requirements and soc_i2s IOSR-1 reset sharing; never report DRC=0 or zero warnings.",
-    "Complete final DSP simulation and native-input checks, preserving that session 45707 has log pass markers but no recovered final process exit. Then review and publish only the intended FPGA phase files with actual commit/push/remote SHA evidence. Native clean relocation session 78856 passed with warnings, not a zero-warning result.",
+    "FPGA final simulation session 31238 and fresh dual-native checks session 79997 returned actual exit 0 on 2026-09-19; native warnings remain and historical session 45707 still has no recovered final exit. The FPGA phase is published as a0d721feff312796d67bb8db7574ec1be6a35c9e with push/remote evidence session 72248 on 2026-09-20. W122, W123, this checkpoint and MCU quickstart documentation are post-publication updates, not included in that commit; publish only the four listed documentation paths before claiming their release.",
+    "W123's MCU four-target rebuild passed with actual exit 0, all source/object isolation and D2 SRAM map gates, and 0 errors/0 warnings using the retained file-local options. It did not rerun CubeMX or upstream downloads. The quickstart example passed syntax/type checking and object compilation only, not linking or execution; current sample rate remains fixed at 48 kHz and portability still needs actual interface assessment.",
     "Do not resume FPGA PS LVGL: the user explicitly removed it from the current scope on 2026-09-14. Retained ignored workspace/log/ELF are historical evidence only, not current deliverables. FPGA software remains audio-only.",
-    "External SDRAM for MCU LVGL is user-deferred and not a current blocker. Do not implement FMC/SDRAM settings without later user direction and verified board/model/pin data. After FPGA publication, prioritize easy-to-call and portable MCU DSP interfaces.",
+    "External SDRAM for MCU LVGL is user-deferred and not a current blocker. Do not implement FMC/SDRAM settings without later user direction and verified board/model/pin data. The current focus after FPGA publication is easy-to-call and portable MCU DSP interfaces.",
     "Do not repeat the published MCU phase or include unrelated root README, ignore rules or historical PDF deletions without exact scope review.",
     "Keep MCU LVGL source, configuration and build selection isolated from the other targets; maintain current Generic_DSP names and original provenance.",
     "MCU display, touch and audio hardware are unverified; FPGA/BX71 hardware is unverified. Software build and source checks are not physical validation.",
     "MPU, VM and Gitee work remain stopped. Preserve all historical worklog entries and failures."
   ],
   "last_failure": {
-    "entry": "W-20260919-121",
-    "summary": "Historical 2026-09-13 PS LVGL ARM build overflowed OCM by 44528 bytes. Earlier W120 XSDK session 75936 PowerShell exit 1, missing application Debug/makefile, missing required success marker, initial CDT pre-clean diagnostics and Hsi 61-9 warning remain preserved in the worklog.",
-    "recovery": "The PS LVGL Thumb log reports 2026-09-13 13:28:17 success and a single OCM LOAD ending at 0x2EDF0 with only 4624 bytes headroom, but session 48318 final exit was never recovered and no hardware ran. The user then removed FPGA LVGL from current scope on 2026-09-14; no current PS LVGL completion task remains. Audio-only rebuild session 31694 returned actual exit 0 and the W120 audio ELF hash/LOAD extent remained unchanged. Native clean relocation session 78856 returned actual exit 0 with warnings; extended DSP simulation has pass markers but session 45707 final exit is uncollected. No hardware execution or FPGA publication is established; W119 DRC warnings and other historical failures remain preserved."
+    "entry": "W-20260920-122",
+    "summary": "Latest read-only diagnostics include rg Windows glob OS error 123 and attempts to read nonexistent mcu/App/Inc/audio_effects.h, tests and root CMakeLists; none changed the project. Historical PS LVGL ARM OCM overflow by 44528 bytes, W120 XSDK session 75936 PowerShell exit 1, missing application Debug/makefile and success marker, initial CDT pre-clean diagnostics and Hsi 61-9 warning remain preserved.",
+    "recovery": "The rg query was corrected to directory plus -g; W123 clarifies that no machine-absolute paths, LVGL or MCU references were found only in native XPR/BD and active build software, excluding README scope explanations and retained historical logs. Future reads should first use rg --files. Historical PS LVGL Thumb evidence and unrecovered session 48318 remain historical only because the user removed FPGA LVGL from scope on 2026-09-14. Audio-only rebuild session 31694 returned actual exit 0; W122 rechecks preserve W120 artifact hashes, entry 0, the single 0..0xD840 LOAD and only main.o/wm8960.o. New final simulation session 31238 and fresh dual-native checks session 79997 returned actual exit 0 with warnings retained. FPGA publication a0d721feff312796d67bb8db7574ec1be6a35c9e and remote main equality were confirmed by actual exit 0 session 72248 on 2026-09-20. W122, W123, this checkpoint and MCU quickstart documentation await separate four-file publication. W123 MCU rebuild and example syntax/object checks passed, but the example was not linked or run and no hardware has run. W119 DRC warnings and all historical failures remain preserved."
   }
 }
